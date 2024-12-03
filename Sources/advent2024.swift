@@ -82,7 +82,7 @@ func diff(_ a: Int, _ b: Int) -> Int {
 }
 
 enum Day1 {
-  static func day11(input: String) -> Int {
+  static func part1(input: String) -> Int {
     let r = input.lines
       .flatMap(\.whitespace)
       .map { Int($0)! }
@@ -101,7 +101,7 @@ enum Day1 {
     return sum
   }
 
-  static func day12(input: String) -> Int {
+  static func part2(input: String) -> Int {
     let r = input.lines
       .flatMap(\.whitespace)
       .map { Int($0)! }
@@ -196,8 +196,8 @@ struct advent2024: ParsableCommand {
   mutating func run() throws {
 
     let registry: [Key: DayFunction] = [
-      [1, 1]: day11,
-      [1, 2]: day12,
+      [1, 1]: Day1.part1,
+      [1, 2]: Day1.part2,
       [2, 1]: Day2.part1,
       [2, 2]: Day2.part2
     ]
