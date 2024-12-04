@@ -234,6 +234,15 @@ enum Day3 {
       .map(part1)
       .sum()
   }
+
+  static func part2take2(input: String) -> Int {
+    return input
+      .split(separator: "do()")
+      .map { $0.split(separator: "don't()").first! }
+      .map(String.init)
+      .map(part1)
+      .sum()
+  }
 }
 
 func slurpInput(day: Int) throws -> String {
@@ -260,7 +269,7 @@ struct advent2024: ParsableCommand {
       [2, 1]: Day2.part1,
       [2, 2]: Day2.part2,
       [3, 1]: Day3.part1,
-      [3, 2]: Day3.part2
+      [3, 2]: Day3.part2take2
     ]
 
     let key: Key = [day, part]
