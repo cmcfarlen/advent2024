@@ -100,6 +100,90 @@ extension String {
   var int: Int {
     Int(self)!
   }
+
+  var grid: [[Character]] {
+    self.lines.map(Array.init)
+  }
+}
+
+struct Coordinate {
+  let x: Int
+  let y: Int
+}
+
+extension Coordinate {
+  func cartesian(ofSize s: Int) -> [Coordinate] {
+    cartesian(width: s, height: s)
+  }
+
+  func cartesian(width w: Int, height h: Int) -> [Coordinate] {
+    product(0..<w, 0..<h).map { x, y in Coordinate.init(x: self.x + x, y: self.y + y) }
+  }
+
+  static func +(a: Coordinate, b: Coordinate) -> Coordinate {
+    .init(x: a.x + b.x, y: a.y + b.y)
+  }
+
+  static let origin: Coordinate = .init(x: 0, y: 0)
+}
+
+extension Coordinate: ExpressibleByArrayLiteral {
+  typealias ArrayLiteralElement = Int
+  init(arrayLiteral elements: ArrayLiteralElement...) {
+    self.x = elements[0]
+    self.y = elements[1]
+  }
+}
+
+extension Collection where Element: Collection<Character> {
+  var width: Int {
+    self[startIndex].count
+  }
+
+  var height: Int {
+    self.count
+  }
+
+  subscript(x: Int, y: Int, default d: Character = ".") -> Character {
+    guard let ridx = index(startIndex, offsetBy: y, limitedBy: endIndex), ridx != endIndex else {
+      return d
+    }
+    
+    let row = self[ridx]
+    guard let cidx = row.index(row.startIndex, offsetBy: x, limitedBy: row.endIndex), cidx != row.endIndex else {
+      return d
+    }
+    return row[cidx]
+  }
+
+  subscript(_ p: Coordinate, default d: Character = ".") -> Character {
+    return self[p.x, p.y, default: d]
+  }
+
+  var coords: [Coordinate] {
+    Coordinate.origin.cartesian(width: width, height: height)
+  }
+
+  func subgrid(at coord: Coordinate, ofSize size: Int) -> [[Character]] {
+    coord
+      .cartesian(ofSize: size)
+      .map {
+        self[$0]
+      }
+      .chunks(ofCount: size)
+      .reduce(into: []) { $0.append(Array($1)) }
+  }
+
+  func matches(_ other: [[Character]], offset: Coordinate = .origin) -> Bool {
+    Coordinate.origin.cartesian(width: other.width, height: other.height).allSatisfy { pt in
+      let o = other[pt, default: "."]
+      if o == "*" {
+        return true
+      } else {
+        return o == self[offset + pt, default: "."]
+      }
+    } 
+  }
 }
 
 extension Substring {
@@ -165,7 +249,7 @@ enum Day2 {
   }
   static func allInRange(_ v: [Int]) -> Bool {
     v.adjacentPairs().allSatisfy { (a, b) in
-      1...3 ~= diff(a, b)
+    1...3 ~= diff(a, b)
     }
   }
   static func safe(_ v: [Int]) -> Bool {
@@ -245,6 +329,108 @@ enum Day3 {
   }
 }
 
+enum Day4 {
+  static func part1(input: String) -> Int {
+    let kernels = [
+      """
+      XMAS
+      ****
+      ****
+      ****
+      """,
+      """
+      SAMX
+      ****
+      ****
+      ****
+      """,
+      """
+      S***
+      *A**
+      **M*
+      ***X
+      """,
+      """
+      X***
+      *M**
+      **A*
+      ***S
+      """,
+      """
+      ***S
+      **A*
+      *M**
+      X***
+      """,
+      """
+      ***X
+      **M*
+      *A**
+      S***
+      """,
+      """
+      X***
+      M***
+      A***
+      S***
+      """,
+      """
+      S***
+      A***
+      M***
+      X***
+      """,
+
+    ].map(\.grid)
+    let puzzle = input.grid
+
+    let m =  puzzle
+     .coords
+     .flatMap { pt in
+        kernels.filter { kernel in
+          puzzle.matches(kernel, offset: pt)
+        }
+     }
+
+    return m.count
+  }
+  static func part2(input: String) -> Int {
+    let kernels = [
+      """
+      M*S
+      *A*
+      M*S
+      """,
+      """
+      S*M
+      *A*
+      S*M
+      """,
+      """
+      S*S
+      *A*
+      M*M
+      """,
+      """
+      M*M
+      *A*
+      S*S
+      """
+    ].map(\.grid)
+    let puzzle = input.grid
+
+    let m =  puzzle
+     .coords
+     .flatMap { pt in
+        kernels.filter { kernel in
+          puzzle.matches(kernel, offset: pt)
+        }
+     }
+
+    return m.count
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -269,7 +455,9 @@ struct advent2024: ParsableCommand {
       [2, 1]: Day2.part1,
       [2, 2]: Day2.part2,
       [3, 1]: Day3.part1,
-      [3, 2]: Day3.part2take2
+      [3, 2]: Day3.part2take2,
+      [4, 1]: Day4.part1,
+      [4, 2]: Day4.part2
     ]
 
     let key: Key = [day, part]
