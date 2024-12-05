@@ -387,8 +387,8 @@ enum Day4 {
     let m =  puzzle
      .coords
      .flatMap { pt in
-        kernels.filter { kernel in
-          puzzle.matches(kernel, offset: pt)
+        kernels.compactMap { kernel in
+          puzzle.matches(kernel, offset: pt) ? 1 : nil
         }
      }
 
@@ -422,8 +422,8 @@ enum Day4 {
     let m =  puzzle
      .coords
      .flatMap { pt in
-        kernels.filter { kernel in
-          puzzle.matches(kernel, offset: pt)
+        kernels.compactMap { kernel in
+          puzzle.matches(kernel, offset: pt) ? 1 : nil
         }
      }
 
