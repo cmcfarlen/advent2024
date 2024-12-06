@@ -87,6 +87,14 @@ extension Collection {
   func remove(_ f: @escaping (Element) -> Bool) -> [Element] {
     filter(complement(f))
   }
+
+  @inlinable
+  func firstRest() -> (Element, [Element]) {
+    let first = self.first!
+    let rest = Array(self.dropFirst())
+
+    return (first, rest)
+  }
 }
 
 extension String {
@@ -103,6 +111,10 @@ extension String {
 
   var grid: [[Character]] {
     self.lines.map(Array.init)
+  }
+
+  func splitInts(separator: Character) -> [Int] {
+    split(separator: separator).map(String.init).map { Int($0)! }
   }
 }
 
@@ -431,6 +443,69 @@ enum Day4 {
   }
 }
 
+enum Day5 {
+
+  static func parseInput(input: String) -> ([Int:Set<Int>], [[Int]]) {
+    let parts = input.split(separator: "\n\n").map(String.init)
+
+    let orders = parts[0]
+                  .lines
+                  .map {
+                    $0.splitInts(separator: "|")
+                  }
+                  .reduce(into: [:]) { m, v in
+                    m[v[0], default: Set<Int>()].insert(v[1])
+                  }
+
+    let pages = parts[1]
+      .lines
+      .map {
+        $0.splitInts(separator: ",")
+      }
+    return (orders, pages)
+  }
+
+  static func comesBefore(_ a: Int, _ b: Int, orders: [Int:Set<Int>]) -> Bool {
+    return orders[a]?.contains(b) ?? false
+  }
+
+  static func check(_ page: [Int], orders: [Int:Set<Int>]) -> Bool {
+    guard page.count > 1 else {
+      return true
+    }
+    let (first, rest) = page.firstRest()
+      if rest.allSatisfy({ p in
+          orders[first]?.contains(p) ?? false
+          }) {
+        return check(rest, orders: orders)
+      }
+    return false
+  }
+
+  static func reorder(_ page: [Int], orders: [Int:Set<Int>]) -> [Int] {
+    page.sorted { a, b in comesBefore(a, b, orders: orders) }
+  }
+
+  static func part1(input: String) -> Int {
+    let (orders, pages) = parseInput(input: input)
+
+    return pages
+     .filter { check($0, orders: orders) }
+     .map { $0[$0.count / 2] }
+     .sum()
+  }
+
+  static func part2(input: String) -> Int {
+    let (orders, pages) = parseInput(input: input)
+
+    return pages
+     .remove { check($0, orders: orders) }
+     .map { reorder($0, orders: orders) }
+     .map { $0[$0.count / 2] }
+     .sum()
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -457,7 +532,9 @@ struct advent2024: ParsableCommand {
       [3, 1]: Day3.part1,
       [3, 2]: Day3.part2take2,
       [4, 1]: Day4.part1,
-      [4, 2]: Day4.part2
+      [4, 2]: Day4.part2,
+      [5, 1]: Day5.part1,
+      [5, 2]: Day5.part2,
     ]
 
     let key: Key = [day, part]
