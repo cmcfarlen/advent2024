@@ -671,6 +671,49 @@ enum Day6 {
   }
 }
 
+enum Day7 {
+  static func combine(_ a: Int, _ b: Int) -> Int {
+    func mag(_ a: Int) -> Int {
+      var m = 10
+      while a / m > 0 {
+        m *= 10
+      }
+      return m
+    }
+
+    return a * mag(b) + b
+  }
+
+  static func possiblyTrue(_ answer: Int, _ numbers: [Int]) -> Bool {
+    func rtest(_ a: Int, _ v: [Int]) -> Bool {
+      if v.isEmpty {
+        return a == answer
+      } else {
+        let (f, rest) = v.firstRest()
+        return rtest(a + f, rest) || rtest(a * f, rest) || rtest(combine(a, f), rest)
+      }
+    }
+
+    let (f, rest) = numbers.firstRest()
+
+    return rtest(f, rest)
+  }
+
+  static func part1(input: String) -> Int {
+    return input.lines.map {
+      $0.split(separator: ": ")
+    }
+    .map { v in
+      (Int(v[0])!, String(v[1]).splitInts(separator: " "))
+    }
+    .filter { (answer, numbers) in
+      possiblyTrue(answer, numbers)
+    }
+    .map { (answer, _) in answer }
+    .sum()
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -702,6 +745,7 @@ struct advent2024: ParsableCommand {
       [5, 2]: Day5.part2,
       [6, 1]: Day6.part1,
       [6, 2]: Day6.part2,
+      [7, 1]: Day7.part1,
     ]
 
     let key: Key = [day, part]
