@@ -156,20 +156,28 @@ extension Collection where Element: Collection<Character> {
     self.count
   }
 
-  subscript(x: Int, y: Int, default d: Character = ".") -> Character {
-    guard let ridx = index(startIndex, offsetBy: y, limitedBy: endIndex), ridx != endIndex else {
+  func contains(coord: Coordinate) -> Bool {
+    guard let ridx = index(startIndex, offsetBy: coord.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+      return false
+    }
+    
+    let row = self[ridx]
+    guard let cidx = row.index(row.startIndex, offsetBy: coord.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+      return false
+    }
+    return true
+  }
+
+  subscript(_ p: Coordinate, default d: Character = ".") -> Character {
+    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
       return d
     }
     
     let row = self[ridx]
-    guard let cidx = row.index(row.startIndex, offsetBy: x, limitedBy: row.endIndex), cidx != row.endIndex else {
+    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
       return d
     }
     return row[cidx]
-  }
-
-  subscript(_ p: Coordinate, default d: Character = ".") -> Character {
-    return self[p.x, p.y, default: d]
   }
 
   var coords: [Coordinate] {
@@ -195,6 +203,33 @@ extension Collection where Element: Collection<Character> {
         return o == self[offset + pt, default: "."]
       }
     } 
+  }
+
+  var display: String {
+    String(map(String.init).joined(by: "\n"))
+  }
+}
+
+extension MutableCollection where Element: MutableCollection<Character> {
+  subscript(_ p: Coordinate) -> Character? {
+    get {
+      guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+        return nil
+      }
+
+      let row = self[ridx]
+      guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+        return nil
+      }
+      return row[cidx]
+    }
+    set {
+      assert(contains(coord: p))
+      let ridx = index(startIndex, offsetBy: p.y)
+      let row = self[ridx]
+      let cidx = row.index(row.startIndex, offsetBy: p.x)
+      self[ridx][cidx] = newValue ?? "0"
+    }
   }
 }
 
@@ -506,6 +541,130 @@ enum Day5 {
   }
 }
 
+enum Day6 {
+  enum Facing: Character {
+    case up = "^"
+    case down = "v"
+    case left = "<"
+    case right = ">"
+
+    var dir: Coordinate {
+      switch self {
+        case .up: [0, -1]
+        case .down: [0, 1]
+        case .left: [-1, 0]
+        case .right: [1, 0]
+      }
+    }
+
+    var right: Facing {
+      switch self {
+        case .up: .right
+        case .down: .left
+        case .left: .up
+        case .right: .down
+      }
+    }
+
+    var travel: Character {
+      switch self {
+        case .up, .down: "|"
+        case .left, .right: "-"
+      }
+    }
+  }
+
+  enum Result {
+    case outside
+    case loop
+    case next(Coordinate)
+  }
+
+  static func part1(input: String) -> Int {
+    var grid = input.grid
+
+    var p = Coordinate.origin.cartesian(width: grid.width, height: grid.height).first { grid[$0] == Facing.up.rawValue }
+    var f = Facing.up
+
+    func nextP(_ p: Coordinate) -> Coordinate? {
+      let next = p + f.dir
+      let c = grid[next, default: "x"] 
+      guard c != "x" else {
+        return nil
+      }
+      if c != "#" {
+        return next
+      }
+      f = f.right
+      return nextP(p)
+    }
+
+    while let c = p {
+      grid[c] = "X"
+      p = nextP(c)
+    }
+    print(grid.display)
+
+    return grid.display.filter { $0 == "X" }.count
+  }
+
+  static func part2(input: String) -> Int {
+    let grid = input.grid
+
+    let startP = Coordinate.origin.cartesian(width: grid.width, height: grid.height).first { grid[$0] == Facing.up.rawValue }
+    var f = Facing.up
+
+    func nextP(_ grid: inout [[Character]], _ p: Coordinate) -> Result {
+      let next = p + f.dir
+      let c = grid[next, default: "x"] 
+      guard c != "x" else {
+        return .outside
+      }
+      if c != "#" && c != "0" {
+        if grid[p] == "." {
+          grid[p] = f.travel
+        } else {
+          grid[p] = "+"
+        }
+        return .next(next)
+      }
+      if grid[p] == "+" {
+        // Loop detected if we are turning on a +
+        return .loop
+      } else if grid[p] == "." {
+        grid[p] = f.travel
+      } else {
+        grid[p] = "+"
+      }
+      f = f.right
+      return nextP(&grid, p)
+    }
+
+    func runGrid(_ grid: inout [[Character]]) -> Bool {
+      f = Facing.up
+      var r = Result.next(startP!)
+      while case let .next(c) = r {
+        r = nextP(&grid, c)
+        if case .loop = r {
+          //print(tmp.display)
+          //print("Loop detected at \(c)")
+          return true
+        }
+      }
+      return false
+    }
+
+    return grid
+      .coords
+      .filter { grid[$0] == "." }
+      .filter {
+        var tmp = grid
+        tmp[$0] = "0"
+        return runGrid(&tmp)
+      }.count
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -535,6 +694,8 @@ struct advent2024: ParsableCommand {
       [4, 2]: Day4.part2,
       [5, 1]: Day5.part1,
       [5, 2]: Day5.part2,
+      [6, 1]: Day6.part1,
+      [6, 2]: Day6.part2,
     ]
 
     let key: Key = [day, part]
