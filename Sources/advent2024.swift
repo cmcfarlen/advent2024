@@ -681,16 +681,16 @@ enum Day7 {
     return a * mag(b) + b
   }
 
-  static func possiblyTrue(_ answer: Int, _ numbers: [Int]) -> Bool {
-    func rtest(_ a: Int, _ v: some Collection<Int>) -> Bool {
+  static func possiblyTrue(_ answer: Int, _ numbers: [Int]) -> Int? {
+    func rtest(_ a: Int, _ v: some Collection<Int>) -> Int? {
       if a > answer {
-        return false
+        return nil
       }
       if v.isEmpty {
-        return a == answer
+        return a == answer ? a : nil
       }
       let (f, rest) = v.firstRest()
-      return rtest(a + f, rest) || rtest(a * f, rest) || rtest(combine(a, f), rest)
+      return rtest(a + f, rest) ?? rtest(a * f, rest) ?? rtest(combine(a, f), rest)
     }
 
     let (f, rest) = numbers.firstRest()
@@ -702,13 +702,9 @@ enum Day7 {
     return input.lines.map {
       $0.split(separator: ": ")
     }
-    .map { v in
-      (Int(v[0])!, String(v[1]).splitInts(separator: " "))
+    .compactMap { v in
+      possiblyTrue(Int(v[0])!, String(v[1]).splitInts(separator: " "))
     }
-    .filter { (answer, numbers) in
-      possiblyTrue(answer, numbers)
-    }
-    .map { (answer, _) in answer }
     .sum()
   }
 }
