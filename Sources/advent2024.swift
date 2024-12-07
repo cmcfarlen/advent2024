@@ -98,50 +98,53 @@ extension Collection {
 }
 
 extension String {
-  var lines: [String] {
+  public var lines: [String] {
     self.split(separator: "\n").map { String($0) }
   }
-  var whitespace: [String] {
+  public var whitespace: [String] {
     self.split(separator: " ").map { String($0) }
   }
 
+  @inlinable
   var int: Int {
     Int(self)!
   }
 
+  @inlinable
   var grid: [[Character]] {
     self.lines.map(Array.init)
   }
 
+  @inlinable
   func splitInts(separator: Character) -> [Int] {
     split(separator: separator).map(String.init).map { Int($0)! }
   }
 }
 
-struct Coordinate {
-  let x: Int
-  let y: Int
+public struct Coordinate: Sendable {
+  public let x: Int
+  public let y: Int
 }
 
 extension Coordinate {
-  func cartesian(ofSize s: Int) -> [Coordinate] {
+  public func cartesian(ofSize s: Int) -> [Coordinate] {
     cartesian(width: s, height: s)
   }
 
-  func cartesian(width w: Int, height h: Int) -> [Coordinate] {
+  public func cartesian(width w: Int, height h: Int) -> [Coordinate] {
     product(0..<w, 0..<h).map { x, y in Coordinate.init(x: self.x + x, y: self.y + y) }
   }
 
-  static func +(a: Coordinate, b: Coordinate) -> Coordinate {
+  public static func +(a: Coordinate, b: Coordinate) -> Coordinate {
     .init(x: a.x + b.x, y: a.y + b.y)
   }
 
-  static let origin: Coordinate = .init(x: 0, y: 0)
+  public static let origin: Coordinate = .init(x: 0, y: 0)
 }
 
 extension Coordinate: ExpressibleByArrayLiteral {
-  typealias ArrayLiteralElement = Int
-  init(arrayLiteral elements: ArrayLiteralElement...) {
+  public typealias ArrayLiteralElement = Int
+  public init(arrayLiteral elements: ArrayLiteralElement...) {
     self.x = elements[0]
     self.y = elements[1]
   }
@@ -156,7 +159,8 @@ extension Collection where Element: Collection<Character> {
     self.count
   }
 
-  func contains(coord: Coordinate) -> Bool {
+  @inlinable
+  public func contains(coord: Coordinate) -> Bool {
     guard let ridx = index(startIndex, offsetBy: coord.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
       return false
     }
@@ -211,6 +215,7 @@ extension Collection where Element: Collection<Character> {
 }
 
 extension MutableCollection where Element: MutableCollection<Character> {
+  @inlinable
   subscript(_ p: Coordinate) -> Character? {
     get {
       guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
@@ -615,23 +620,24 @@ enum Day6 {
     var f = Facing.up
 
     func nextP(_ grid: inout [[Character]], _ p: Coordinate) -> Result {
+      let pc = grid[p]
       let next = p + f.dir
       let c = grid[next, default: "x"] 
       guard c != "x" else {
         return .outside
       }
       if c != "#" && c != "0" {
-        if grid[p] == "." {
+        if pc == "." {
           grid[p] = f.travel
         } else {
           grid[p] = "+"
         }
         return .next(next)
       }
-      if grid[p] == "+" {
+      if pc == "+" {
         // Loop detected if we are turning on a +
         return .loop
-      } else if grid[p] == "." {
+      } else if pc == "." {
         grid[p] = f.travel
       } else {
         grid[p] = "+"
