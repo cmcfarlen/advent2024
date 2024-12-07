@@ -89,11 +89,8 @@ extension Collection {
   }
 
   @inlinable
-  func firstRest() -> (Element, [Element]) {
-    let first = self.first!
-    let rest = Array(self.dropFirst())
-
-    return (first, rest)
+  func firstRest() -> (Element, SubSequence) {
+    return (self.first!, self.dropFirst())
   }
 }
 
@@ -509,7 +506,7 @@ enum Day5 {
     return orders[a]?.contains(b) ?? false
   }
 
-  static func check(_ page: [Int], orders: [Int:Set<Int>]) -> Bool {
+  static func check(_ page: some Collection<Int>, orders: [Int:Set<Int>]) -> Bool {
     guard page.count > 1 else {
       return true
     }
@@ -685,7 +682,7 @@ enum Day7 {
   }
 
   static func possiblyTrue(_ answer: Int, _ numbers: [Int]) -> Bool {
-    func rtest(_ a: Int, _ v: [Int]) -> Bool {
+    func rtest(_ a: Int, _ v: some Collection<Int>) -> Bool {
       if a > answer {
         return false
       }
