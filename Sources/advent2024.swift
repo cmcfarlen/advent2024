@@ -686,12 +686,14 @@ enum Day7 {
 
   static func possiblyTrue(_ answer: Int, _ numbers: [Int]) -> Bool {
     func rtest(_ a: Int, _ v: [Int]) -> Bool {
+      if a > answer {
+        return false
+      }
       if v.isEmpty {
         return a == answer
-      } else {
-        let (f, rest) = v.firstRest()
-        return rtest(a + f, rest) || rtest(a * f, rest) || rtest(combine(a, f), rest)
       }
+      let (f, rest) = v.firstRest()
+      return rtest(a + f, rest) || rtest(a * f, rest) || rtest(combine(a, f), rest)
     }
 
     let (f, rest) = numbers.firstRest()
