@@ -82,6 +82,18 @@ func complement<each T>(_ f: @escaping (repeat each T)->Bool) -> (repeat each T)
   }
 }
 
+// Too lazy to make this lazy
+@inlinable
+func iterate<T>(_ initial: T, _ f: (T) -> T?) -> [T] {
+  var result = [initial]
+  var x = initial
+  while let n = f(x) {
+    result.append(n)
+    x = n
+  }
+  return result
+}
+
 extension Collection {
   @inlinable
   func remove(_ f: @escaping (Element) -> Bool) -> [Element] {
@@ -142,7 +154,7 @@ extension String {
   }
 }
 
-public struct Coordinate: Sendable {
+public struct Coordinate: Hashable, Sendable {
   public let x: Int
   public let y: Int
 }
@@ -160,6 +172,10 @@ extension Coordinate {
     .init(x: a.x + b.x, y: a.y + b.y)
   }
 
+  public static func -(a: Coordinate, b: Coordinate) -> Coordinate {
+    .init(x: a.x - b.x, y: a.y - b.y)
+  }
+
   public static let origin: Coordinate = .init(x: 0, y: 0)
 }
 
@@ -168,6 +184,12 @@ extension Coordinate: ExpressibleByArrayLiteral {
   public init(arrayLiteral elements: ArrayLiteralElement...) {
     self.x = elements[0]
     self.y = elements[1]
+  }
+}
+
+extension Coordinate: CustomStringConvertible {
+  public var description: String {
+    "[\(x),\(y)]"
   }
 }
 
@@ -758,6 +780,66 @@ enum Day7 {
   }
 }
 
+enum Day8 {
+  static func part1(input: String) -> Int {
+    let grid = input.grid
+    let nodes = Dictionary(grouping: grid.coords) {
+      grid[$0]
+    }
+
+    func resonantFrequencies(for f: [Coordinate]) -> Set<Coordinate> {
+      return f.permutations(ofCount: 2)
+       .map { pair in
+         let d = pair[1] - pair[0]
+         return [pair[1] + d, pair[0] - d]
+       }
+       .reduce([]) {
+         $0.union($1)
+       }
+    }
+
+    return nodes
+      .remove { $0.key == "." }
+      .map(\.value)
+      .map(resonantFrequencies)
+      .reduce(Set<Coordinate>()) { $0.union($1) }
+      .filter(grid.contains)
+      .count
+  }
+
+  static func part2(input: String) -> Int {
+    let grid = input.grid
+    let nodes = Dictionary(grouping: grid.coords) {
+      grid[$0]
+    }
+
+    func resonantFrequencies(for f: [Coordinate]) -> Set<Coordinate> {
+      return f.permutations(ofCount: 2)
+       .map { pair in
+         let d = pair[1] - pair[0]
+
+         return iterate(pair[1]) {
+           let n = $0 + d
+           return grid.contains(coord: n) ? n : nil
+         } + iterate(pair[0]) {
+           let n = $0 - d
+           return grid.contains(coord: n) ? n : nil
+         }
+       }
+       .reduce([]) {
+         $0.union($1)
+       }
+    }
+
+    return nodes
+      .remove { $0.key == "." }
+      .map(\.value)
+      .map(resonantFrequencies)
+      .reduce(Set<Coordinate>()) { $0.union($1) }
+      .count
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -799,6 +881,8 @@ struct advent2024: ParsableCommand {
       [6, 1]: Day6.part1,
       [6, 2]: Day6.part2,
       [7, 1]: Day7.part1,
+      [8, 1]: Day8.part1,
+      [8, 2]: Day8.part2,
     ]
 
     let key: Key = [day, part]
