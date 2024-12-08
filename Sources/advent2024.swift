@@ -94,6 +94,19 @@ func iterate<T>(_ initial: T, _ f: (T) -> T?) -> [T] {
   return result
 }
 
+func gcd(_ m: Int, _ n: Int) -> Int {
+  var a = 0
+  var b = max(m, n)
+  var r = min(m, n)
+
+  while r != 0 {
+    a = b
+    b = r
+    r = a % b
+  }
+  return b
+}
+
 extension Collection {
   @inlinable
   func remove(_ f: @escaping (Element) -> Bool) -> [Element] {
@@ -817,6 +830,10 @@ enum Day8 {
       return f.permutations(ofCount: 2)
        .map { pair in
          let d = pair[1] - pair[0]
+
+         if abs(gcd(d.x, d.y)) != 1 {
+           print("Not coprime: \(d) \(gcd(d.x, d.y))")
+         }
 
          return iterate(pair[1]) {
            let n = $0 + d
