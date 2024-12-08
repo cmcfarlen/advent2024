@@ -702,7 +702,6 @@ enum Day7 {
   }
 
   static func combine(_ a: Int, _ b: Int) -> Int {
-
     return a * mag(b) + b
   }
 
@@ -768,6 +767,15 @@ func slurpInput(day: Int) throws -> String {
 
 typealias DayFunction = (String) -> any CustomStringConvertible
 
+func measure<T>(_ f: () throws -> T) rethrows -> (T, ContinuousClock.Duration) {
+  let c = ContinuousClock()
+
+
+  let before = c.now
+  let r = try f()
+  return (r, c.now - before)
+}
+
 @main
 struct advent2024: ParsableCommand {
   @Argument
@@ -804,6 +812,8 @@ struct advent2024: ParsableCommand {
       return
     }
 
-    print("day \(day) part \(part): \(dayf(input))")
+    let (result, duration) = measure { dayf(input) }
+
+    print("day \(day) part \(part): \(result) in \(duration)")
   }
 }
