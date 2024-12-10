@@ -50,7 +50,7 @@ extension Sequence {
   }
 
   @inlinable
-  func show(_ input: [String]) -> Self {
+  func show<T>(_ input: [T]) -> Self {
     for (line, x) in self.enumerated() {
       print("\(line): \(input[line]) -> \(x)")
     }
@@ -167,6 +167,13 @@ extension String {
   }
 
   @inlinable
+  var intGrid: [[Int]] {
+    let zero = Character("0").asciiValue!
+    return self.lines.reduce(into: []) { $0.append($1.map { Int($0.asciiValue! - zero) }) }
+  }
+
+
+  @inlinable
   func splitInts(separator: Character) -> [Int] {
     split(separator: separator).map(String.init).map { Int($0)! }
   }
@@ -194,6 +201,18 @@ extension Coordinate {
     .init(x: a.x - b.x, y: a.y - b.y)
   }
 
+  public var surrounding: [Coordinate] {
+    [[-1,-1], [0,-1], [1,-1],
+     [-1,0],          [1, 0],
+     [-1, 1], [0, 1], [1, 1]].map { self + $0 }
+  }
+
+  public var udlr: [Coordinate] {
+    [        [0,-1],
+     [-1,0],        [1, 0],
+             [0, 1]].map { self + $0 }
+  }
+
   public static let origin: Coordinate = .init(x: 0, y: 0)
 }
 
@@ -211,7 +230,7 @@ extension Coordinate: CustomStringConvertible {
   }
 }
 
-extension Collection where Element: Collection<Character> {
+extension Collection where Element: Collection {
   var width: Int {
     self[startIndex].count
   }
@@ -233,7 +252,33 @@ extension Collection where Element: Collection<Character> {
     return true
   }
 
-  subscript(_ p: Coordinate, default d: Character = ".") -> Character {
+  var coords: [Coordinate] {
+    Coordinate.origin.cartesian(width: width, height: height)
+  }
+
+  func subgrid(at coord: Coordinate, ofSize size: Int) -> [[Element.Element]] {
+    coord
+      .cartesian(ofSize: size)
+      .map {
+        self[$0]!
+      }
+      .chunks(ofCount: size)
+      .reduce(into: []) { $0.append(Array($1)) }
+  }
+
+  subscript(_ p: Coordinate) -> Element.Element? {
+    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+      return nil
+    }
+    
+    let row = self[ridx]
+    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+      return nil
+    }
+    return row[cidx]
+  }
+
+  subscript(_ p: Coordinate, default d: Element.Element) -> Element.Element {
     guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
       return d
     }
@@ -245,18 +290,20 @@ extension Collection where Element: Collection<Character> {
     return row[cidx]
   }
 
-  var coords: [Coordinate] {
-    Coordinate.origin.cartesian(width: width, height: height)
-  }
 
-  func subgrid(at coord: Coordinate, ofSize size: Int) -> [[Character]] {
-    coord
-      .cartesian(ofSize: size)
-      .map {
-        self[$0]
-      }
-      .chunks(ofCount: size)
-      .reduce(into: []) { $0.append(Array($1)) }
+}
+
+extension Collection where Element: Collection<Character> {
+  subscript(_ p: Coordinate, default d: Character = ".") -> Character {
+    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+      return d
+    }
+    
+    let row = self[ridx]
+    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+      return d
+    }
+    return row[cidx]
   }
 
   func matches(_ other: [[Character]], offset: Coordinate = .origin) -> Bool {
@@ -275,9 +322,9 @@ extension Collection where Element: Collection<Character> {
   }
 }
 
-extension MutableCollection where Element: MutableCollection<Character> {
+extension MutableCollection where Element: MutableCollection {
   @inlinable
-  subscript(_ p: Coordinate) -> Character? {
+  subscript(_ p: Coordinate) -> Element.Element? {
     get {
       guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
         return nil
@@ -294,7 +341,7 @@ extension MutableCollection where Element: MutableCollection<Character> {
       let ridx = index(startIndex, offsetBy: p.y)
       let row = self[ridx]
       let cidx = row.index(row.startIndex, offsetBy: p.x)
-      self[ridx][cidx] = newValue ?? "0"
+      self[ridx][cidx] = newValue!
     }
   }
 }
@@ -959,6 +1006,44 @@ enum Day9 {
   }
 }
 
+enum Day10 {
+  static func part1(input: String) -> Int {
+    let grid = input.intGrid
+    let heads = grid.coords.filter { grid[$0] == 0 }
+    
+    func walkTrail(_ c: Coordinate) -> Set<Coordinate> {
+      let v = grid[c]!
+      if v == 9 {
+        return [c]
+      }
+      return c.udlr
+       .filter { grid[$0] == v + 1 }
+       .map(walkTrail)
+       .reduce([]) { $0.union($1) }
+    }
+
+    return heads.map(walkTrail).show(heads).map(\.count).sum()
+  }
+
+  static func part2(input: String) -> Int {
+    let grid = input.intGrid
+    let heads = grid.coords.filter { grid[$0] == 0 }
+    
+    func walkTrail(_ c: Coordinate) -> Int {
+      let v = grid[c]!
+      if v == 9 {
+        return 1
+      }
+      return c.udlr
+       .filter { grid[$0] == v + 1 }
+       .map(walkTrail)
+       .sum()
+    }
+
+    return heads.map(walkTrail).sum()
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -1004,6 +1089,8 @@ struct advent2024: ParsableCommand {
       [8, 2]: Day8.part2,
       [9, 1]: Day9.part1,
       [9, 2]: Day9.part2,
+      [10, 1]: Day10.part1,
+      [10, 2]: Day10.part2,
     ]
 
     let key: Key = [day, part]
