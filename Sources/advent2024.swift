@@ -82,6 +82,24 @@ func complement<each T>(_ f: @escaping (repeat each T)->Bool) -> (repeat each T)
   }
 }
 
+@inlinable
+func memoize<each T: Hashable, U>(_ f: @escaping (repeat each T)->U) -> (repeat each T) -> U {
+  var cache: [Int: U] = [:]
+  return { (args: repeat each T) in
+    var h = Hasher()
+    for arg in repeat each args {
+      h.combine(arg)
+    }
+    let key = h.finalize()
+    if let v = cache[key] {
+      return v
+    }
+    let v = f(repeat each args)
+    cache[key] = v
+    return v
+  }
+}
+
 // Too lazy to make this lazy
 @inlinable
 func iterate<T>(_ initial: T, _ f: (T) -> T?) -> [T] {
@@ -1054,49 +1072,41 @@ enum Day10 {
 }
 
 enum Day11 {
+  @inlinable
   static func digits(_ x: Int) -> Int {
-    var d = 1
-    var i = x
-
-    while i >= 10 {
-      d += 1
-      i /= 10
-    }
-    return d
+    Int(floor(log10(Double(x)))) + 1
   }
 
+  @inlinable
   static func pow10(_ x: Int) -> Int {
-    if x == 0 {
-      return 1
-    }
-    return (1..<x).reduce(10) { r, _ in r * 10 }
+    Int(pow(10, Double(x)))
   }
 
-  static func splitInt(_ x: Int, digits d: Int? = nil) -> [Int] {
-    let (a, b) = x.quotientAndRemainder(dividingBy: pow10((d ?? digits(x)) / 2))
-    return [a, b]
-  }
-
-  static func update(stone s: Int) -> [Int] {
-    if s == 0 {
-      return [1]
+  static func blink(_ stones: ArraySlice<Int>) -> [Int] {
+    var result = [Int]()
+    result.reserveCapacity(stones.count*2)
+    for s in stones {
+      if s == 0 {
+        result.append(1)
+      } else {
+        let d = digits(s)
+        if d % 2 == 0 {
+          let (a, b) = s.quotientAndRemainder(dividingBy: pow10(d / 2))
+          result.append(a)
+          result.append(b)
+        } else {
+          result.append(s * 2024)
+        }
+      }
     }
-    let d = digits(s)
-    if d % 2 == 0 {
-      return Array(splitInt(s, digits: d))
-    }
-    return [s * 2024]
-  }
-
-  static func blink(_ stones: [Int]) -> [Int] {
-    return stones.flatMap(update)
+    return result
   }
 
   static func run(input: String, times t: Int) -> Int {
     var stones = input.lines.first!.splitInts(separator: " ")
     for x in 0..<t {
       let (s, m) = measure {
-        stones = blink(stones)
+        stones = blink(stones[...])
         return stones.count
       }
       print("\(x): \(s) - \(m)")
@@ -1107,8 +1117,89 @@ enum Day11 {
   static func part1(input: String) -> Int {
     run(input: input, times: 25)
   }
-  static func part2(input: String) -> Int {
-    run(input: input, times: 75)
+
+  // ahahahahahah
+  static func part2bruteforce(input: String) async -> Int {
+    var stones = [input.lines.first!.splitInts(separator: " ")]
+
+    return await withTaskGroup(of: [Int].self) { group in
+      for x in 0..<75 {
+
+        var chunks = 0
+        for chunkGroup in stones {
+          for chunk in chunkGroup.chunks(ofCount: 1_000_000_000) {
+            let cid = chunks
+            group.addTask {
+              print("chunk \(cid) priority \(Task.currentPriority)")
+              return blink(chunk)
+            }
+            chunks += 1
+          }
+        }
+
+        let (s, m) = await measure {
+            var tmp = [[Int]]()
+            tmp.reserveCapacity(stones.count * 2)
+
+            stones = await group.reduce(into: tmp) {
+              $0.append($1)
+            }
+            return stones.map(\.count).sum()
+        }
+
+        print("\(x): \(s) - \(m) \(chunks) chunks")
+
+      }
+
+      return stones.count
+    }
+  }
+  
+  // blink a stone some number of times and return the number of stones
+  static func blinkStone(cache: inout [Int:[Int:Int]], stone sin: Int, times: Int) -> Int {
+    if let v = cache[times]?[sin] {
+      return v
+    }
+    var s = sin
+    var count = 1
+
+    for t in 0..<times {
+      if s == 0 {
+        s = 1
+      } else {
+        let d = digits(s)
+        if d % 2 == 0 {
+          let (a, b) = s.quotientAndRemainder(dividingBy: pow10(d / 2))
+          s = a
+          count += blinkStone(cache: &cache, stone: b, times: times - t - 1)
+        } else {
+          s *= 2024
+        }
+      }
+    }
+    cache[times, default: [:]][sin] = count
+    return count
+  }
+
+  static func part2smart(input: String) -> Int {
+    let stones = input.lines.first!.splitInts(separator: " ")
+
+    var cache = [Int:[Int:Int]]()
+    return stones.map { blinkStone(cache: &cache, stone: $0, times: 75) }.sum()
+  }
+
+  static func part2smartasync(input: String) async -> Int {
+    let stones = input.lines.first!.splitInts(separator: " ")
+
+    return await withTaskGroup(of: Int.self) { group in
+      for s in stones {
+        group.addTask {
+          var cache = [Int:[Int:Int]]()
+          return blinkStone(cache: &cache, stone: s, times: 75)
+        }
+      }
+      return await group.reduce(0) { $0 + $1 }
+    }
   }
 }
 
@@ -1120,6 +1211,7 @@ func slurpInput(day: Int) throws -> String {
 }
 
 typealias DayFunction = (String) -> any CustomStringConvertible
+typealias DayFunctionAsync = (String) async -> Int
 
 func measure<T>(_ f: () throws -> T) rethrows -> (T, ContinuousClock.Duration) {
   let c = ContinuousClock()
@@ -1130,14 +1222,23 @@ func measure<T>(_ f: () throws -> T) rethrows -> (T, ContinuousClock.Duration) {
   return (r, c.now - before)
 }
 
+func measure<T>(_ f: () async throws -> T) async rethrows -> (T, ContinuousClock.Duration) {
+  let c = ContinuousClock()
+
+
+  let before = c.now
+  let r = try await f()
+  return (r, c.now - before)
+}
+
 @main
-struct advent2024: ParsableCommand {
+struct advent2024: AsyncParsableCommand {
   @Argument
   var day: Int
   @Argument
   var part: Int
 
-  mutating func run() throws {
+  mutating func run() async throws {
 
     let registry: [Key: DayFunction] = [
       [1, 1]: Day1.part1,
@@ -1160,22 +1261,39 @@ struct advent2024: ParsableCommand {
       [10, 1]: Day10.part1,
       [10, 2]: Day10.part2,
       [11, 1]: Day11.part1,
-      [11, 2]: Day11.part2,
+      [11, 2]: Day11.part2smart,
     ]
 
-    let key: Key = [day, part]
+    let registryAsync: [Key: DayFunctionAsync] = [
+      [11, 2]: Day11.part2smartasync,
+    ]
+
     guard let input = try? slurpInput(day: day) else {
       print("Failed to read input for day \(day)")
       return
     }
 
-    guard let dayf = registry[key] else {
-      print("Unimplemented day \(day) \(part)")
+    let key: Key = [day, part]
+    if let dayf = registry[key] {
+      let (result, duration) = measure { dayf(input) }
+
+      print("day \(day) part \(part): \(result) in \(duration)")
       return
     }
 
-    let (result, duration) = measure { dayf(input) }
+    if let dayf = registryAsync[key] {
+      let (result, duration) = 
+          await Task(priority: .high) { [dayf] in
+            await measure {
+              await dayf(input)
+            }
+          }.value
 
-    print("day \(day) part \(part): \(result) in \(duration)")
+      print("day \(day) part \(part): \(result) in \(duration)")
+      return
+    }
+
+      print("Unimplemented day \(day) \(part)")
+
   }
 }
