@@ -94,6 +94,15 @@ func iterate<T>(_ initial: T, _ f: (T) -> T?) -> [T] {
   return result
 }
 
+@inlinable
+func iterate<T>(_ initial: T, times t: Int, _ f: (T) -> T) -> [T] {
+  var result = [T]()
+
+  result.reserveCapacity(t+1)
+  result.append(initial)
+  return (1..<t).reduce(into: result) { $0.append(f($0[$1-1])) }
+}
+
 func gcd(_ m: Int, _ n: Int) -> Int {
   var a = 0
   var b = max(m, n)
@@ -1044,6 +1053,65 @@ enum Day10 {
   }
 }
 
+enum Day11 {
+  static func digits(_ x: Int) -> Int {
+    var d = 1
+    var i = x
+
+    while i >= 10 {
+      d += 1
+      i /= 10
+    }
+    return d
+  }
+
+  static func pow10(_ x: Int) -> Int {
+    if x == 0 {
+      return 1
+    }
+    return (1..<x).reduce(10) { r, _ in r * 10 }
+  }
+
+  static func splitInt(_ x: Int, digits d: Int? = nil) -> [Int] {
+    let (a, b) = x.quotientAndRemainder(dividingBy: pow10((d ?? digits(x)) / 2))
+    return [a, b]
+  }
+
+  static func update(stone s: Int) -> [Int] {
+    if s == 0 {
+      return [1]
+    }
+    let d = digits(s)
+    if d % 2 == 0 {
+      return Array(splitInt(s, digits: d))
+    }
+    return [s * 2024]
+  }
+
+  static func blink(_ stones: [Int]) -> [Int] {
+    return stones.flatMap(update)
+  }
+
+  static func run(input: String, times t: Int) -> Int {
+    var stones = input.lines.first!.splitInts(separator: " ")
+    for x in 0..<t {
+      let (s, m) = measure {
+        stones = blink(stones)
+        return stones.count
+      }
+      print("\(x): \(s) - \(m)")
+    }
+    return stones.count
+  }
+
+  static func part1(input: String) -> Int {
+    run(input: input, times: 25)
+  }
+  static func part2(input: String) -> Int {
+    run(input: input, times: 75)
+  }
+}
+
 func slurpInput(day: Int) throws -> String {
     let cwd = FileManager.default.currentDirectoryPath
     let path = "\(cwd)/input/day\(day).txt"
@@ -1091,6 +1159,8 @@ struct advent2024: ParsableCommand {
       [9, 2]: Day9.part2,
       [10, 1]: Day10.part1,
       [10, 2]: Day10.part2,
+      [11, 1]: Day11.part1,
+      [11, 2]: Day11.part2,
     ]
 
     let key: Key = [day, part]
