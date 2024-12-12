@@ -21,6 +21,15 @@ extension Key: ExpressibleByArrayLiteral {
   }
 }
 
+extension Key: Comparable {
+  static func < (lhs: Key, rhs: Key) -> Bool {
+    if lhs.day == rhs.day {
+      return lhs.part < rhs.part
+    }
+    return lhs.day < rhs.day
+  }
+}
+
 extension Sequence {
   @inlinable
   func groupBy<T: Hashable>(_ f: (Element) throws -> T) rethrows -> [T: [Element]] { 
@@ -743,7 +752,6 @@ enum Day6 {
       grid[c] = "X"
       p = nextP(c)
     }
-    print(grid.display)
 
     return grid.display.filter { $0 == "X" }.count
   }
@@ -787,8 +795,6 @@ enum Day6 {
       while case let .next(c) = r {
         r = nextP(&grid, c)
         if case .loop = r {
-          //print(tmp.display)
-          //print("Loop detected at \(c)")
           return true
         }
       }
@@ -979,11 +985,6 @@ enum Day9 {
        }
        return exp
      }
-    //print("\(emptyIndexes) \(emptyIndexes.count)")
-    //print("\(backwardBlocks) \(backwardBlocks.count)")
-    //print(expanded)
-    //print(packed)
-
     
     return packed.remove { $0 == -1 }.enumerated().map { $0.offset * $0.element }.sum()
   }
@@ -1014,9 +1015,6 @@ enum Day9 {
       cks.map { String(repeating: id($0.0), count: $0.1 ) }.joined()
     }
 
-    print(files)
-    print(chunks)
-    print(chunksString(chunks))
     chunks = files.reduce(into: chunks) { chunks, file in
       let fpos = chunks.firstIndex { $0 == file }!
       if let idx = chunks.firstIndex(where: { (val, sz) in val == nil && file.sz <= sz }), idx < fpos {
@@ -1025,9 +1023,7 @@ enum Day9 {
         chunks.insert(file, at: idx)
       }
     }
-    print(chunksString(chunks))
     let packed = chunksToPacked(chunks)
-    print(packed)
 
     return packed.enumerated().filter { $0.element != -1 }.map { $0.offset * $0.element }.sum()
   }
@@ -1234,9 +1230,9 @@ func measure<T>(_ f: () async throws -> T) async rethrows -> (T, ContinuousClock
 @main
 struct advent2024: AsyncParsableCommand {
   @Argument
-  var day: Int
+  var day: Int = 0
   @Argument
-  var part: Int
+  var part: Int = 0
 
   mutating func run() async throws {
 
@@ -1268,6 +1264,25 @@ struct advent2024: AsyncParsableCommand {
       [11, 2]: Day11.part2smartasync,
     ]
 
+    if day == 0 {
+      var summaries = [String]()
+      for (key, dayf) in registry.sorted { $0.0 < $1.0 } {
+        guard let input = try? slurpInput(day: key.day) else {
+          print("Failed to read input for day \(key.day)")
+          return
+        }
+
+        let (result, duration) = measure { dayf(input) }
+
+        summaries.append("day \(key.day) part \(key.part): \(result) in \(duration)")
+      }
+      print("Summaries:")
+      for s in summaries {
+        print("  \(s)")
+      }
+      return
+    }
+
     guard let input = try? slurpInput(day: day) else {
       print("Failed to read input for day \(day)")
       return
@@ -1293,7 +1308,6 @@ struct advent2024: AsyncParsableCommand {
       return
     }
 
-      print("Unimplemented day \(day) \(part)")
-
+    print("Unimplemented day \(day) \(part)")
   }
 }
