@@ -214,6 +214,10 @@ public struct Coordinate: Hashable, Sendable {
 }
 
 extension Coordinate {
+  public init(fromArray: [Int]) {
+    x = fromArray[0]
+    y = fromArray[1]
+  }
   public func cartesian(ofSize s: Int) -> [Coordinate] {
     cartesian(width: s, height: s)
   }
@@ -228,6 +232,10 @@ extension Coordinate {
 
   public static func -(a: Coordinate, b: Coordinate) -> Coordinate {
     .init(x: a.x - b.x, y: a.y - b.y)
+  }
+
+  public static func *(a: Coordinate, b: Int) -> Coordinate {
+    .init(x: a.x * b, y: a.y * b)
   }
 
   public var surrounding: [Coordinate] {
@@ -247,6 +255,11 @@ extension Coordinate {
     let dx = diff(a.x, x)
     let dy = diff(a.y, y)
     return (dx == 0 && dy == 1) || (dy == 0 && dx == 1)
+  }
+
+  public func distanceSquared(to: Coordinate) -> Int {
+    let d = to - self
+    return d.x*d.x+d.y*d.y
   }
 
   public static let origin: Coordinate = .init(x: 0, y: 0)
@@ -326,7 +339,105 @@ extension Collection where Element: Collection {
     return row[cidx]
   }
 
+  var display: String {
+    map {
+      $0.map { "\($0)" }.joined()
+    }.joined(separator: "\n")
+  }
+}
 
+extension Coordinate: Comparable {
+  public static func < (lhs: Coordinate, rhs: Coordinate) -> Bool {
+    if lhs.x == rhs.x {
+      return lhs.y < rhs.y
+    }
+    return lhs.x < rhs.x
+  }
+}
+
+struct Box {
+  let upperLeft: Coordinate
+  let lowerRight: Coordinate
+
+  init(from: some Collection<Coordinate>) {
+    let s = from.sorted { a, b in a < b }
+    self.upperLeft = s.first!
+    self.lowerRight = s.last!
+  }
+  init(upperLeft: Coordinate, lowerRight: Coordinate) {
+    self.upperLeft = upperLeft
+    self.lowerRight = lowerRight
+  }
+  init(x: Int = 0, y: Int = 0, width: Int, height: Int) {
+    self.upperLeft = [x, y]
+    self.lowerRight = [x + width - 1, y + height - 1]
+  }
+
+  var upperRight: Coordinate {
+    [lowerRight.x, upperLeft.y]
+  }
+  var lowerLeft: Coordinate {
+    [upperLeft.x, lowerRight.y]
+  }
+
+  var left: Int {
+    upperLeft.x
+  }
+  var right: Int {
+    lowerRight.x
+  }
+  var top: Int {
+    upperLeft.y
+  }
+  var bottom: Int {
+    lowerRight.y
+  }
+  var width: Int {
+    lowerRight.x - upperLeft.x + 1
+  }
+  var height: Int {
+   lowerRight.y - upperLeft.y + 1
+  }
+
+  var coords: [Coordinate] {
+    upperLeft.cartesian(width: width, height: height)
+  }
+
+  func wrap(_ c: Coordinate) -> Coordinate {
+    func h(_ v: Int, _ b: Int) -> Int {
+      //v < 0 ? b+v : v > b ? v % b : v
+      if v < 0 {
+        b+v
+      } else if v >= b {
+        v % b
+      } else {
+        v
+      }
+    }
+    return [h(c.x, width), h(c.y, height)]
+  }
+
+  func contains(_ c: Coordinate) -> Bool {
+    return c.x >= left && c.x <= right &&
+           c.y >= top && c.y <= bottom
+  }
+
+  func grid<T>(with v: T) -> [[T]] {
+    let row: [T] = .init(repeating: v, count: width)
+    return Array(repeating: row, count: height)
+  }
+
+  func divide(by v: Int = 2) -> [Box] {
+    let w = width / 2
+    let h = height / 2
+
+    print("Width \(w) height \(h)")
+
+    return [.init(x: 0,   y: 0,   width: w, height: h),
+            .init(x: 0,   y: h+1, width: w, height: h),
+            .init(x: w+1, y: 0,   width: w, height: h),
+            .init(x: w+1, y: h+1, width: w, height: h)]
+  }
 }
 
 extension Collection where Element: Collection<Character> {
@@ -359,9 +470,6 @@ extension Collection where Element: Collection<Character> {
     return g
   }
 
-  var display: String {
-    String(map(String.init).joined(by: "\n"))
-  }
 }
 
 extension MutableCollection where Element: MutableCollection {
