@@ -86,9 +86,7 @@ enum Day15 {
       return result
     }
 
-    let boxCh: Set<Character> = ["[", "]"]
-
-    func update(grid: [[Character]], p: Coordinate, m: Coordinate) -> (Coordinate, [[Character]]) {
+    func update(grid: [[Character]], p: Coordinate, m: Coordinate, with ch: Character) -> (Coordinate, [[Character]]) {
       let next = p + m
       let nextItem = grid[next]!
       
@@ -96,60 +94,42 @@ enum Day15 {
         return (p, grid)
       }
 
+      var result = grid
 
       if nextItem != "." {
-        var result = grid
-        // horizonal is the same as part 1
-        if m.y == 0 {
-          if boxCh.contains(nextItem) {
-            var end = next + m + m
-            while boxCh.contains(grid[end]) {
-              end = end + m + m
-            }
-            if grid[end] == "#" {
-              // boxes to wall
-              return (p, grid)
-            }
-            while end != next {
-              let ne = end - m
-              result[end] = grid[ne]
-              end = ne
-            }
-            result[next] = "."
-          } else {
-            fatalError("String item \(nextItem) at \(next)")
-          }
-          return (next, result)
-        // vertical can move wide
-        } else {
+        let (rp, rgrid) = update(grid: result, p: next, m: m, with: nextItem)
+        if rp == next {
           return (p, grid)
+        }
+        result = rgrid
+        if m.x == 0 {
+          let (sideP, sideCh) = nextItem == "[" ? (next + [1, 0], "]") : (next - [1, 0], "[")
+          let (sidenp, sgrid) = update(grid: result, p: sideP, m: m, with: Character(sideCh))
+          if (sidenp == sideP) {
+            return (p, grid)
+          }
+          result = sgrid
         }
       }
 
-      return (next, grid)
+      result[next] = ch
+      result[p] = "."
+      return (next, result)
     }
 
-    var widegrid = widen(grid: grid)
+    let widegrid = widen(grid: grid)
     let p = widegrid.coords.first { widegrid[$0] == "@" }!
-    widegrid[p] = "."
-
-    print(widegrid.display)
-    print("Player at \(p)")
 
     let (_, fgrid) = moves.map(direction)
       .reduce((p, widegrid)) { old, mv in
         let (p, grid) = old
-        let new = update(grid: grid, p: p, m: mv)
-        print("Move \(mv) p \(new.0)")
-        var withp = new.1
-        withp[new.0] = "@"
-        print(withp.display)
+        let new = update(grid: grid, p: p, m: mv, with: "@")
 
         return new
       }
 
     return fgrid.coords
-      .filter { grid[$0] == "[" }
+      .filter { fgrid[$0] == "[" }
       .map { 100 * $0.y + $0.x }
       .sum()
   }
