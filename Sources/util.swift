@@ -438,6 +438,10 @@ struct Box {
             .init(x: w+1, y: 0,   width: w, height: h),
             .init(x: w+1, y: h+1, width: w, height: h)]
   }
+
+  func widen(scale: Coordinate) -> Box {
+    Box(x: upperLeft.x, y: upperLeft.y, width: width*scale.x, height: height*scale.y)
+  }
 }
 
 extension Collection where Element: Collection<Character> {
