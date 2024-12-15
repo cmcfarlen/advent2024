@@ -51,17 +51,80 @@ enum Day12 {
     let grid = input.grid
     let regions = createRegions(for: grid)
 
-/*
-    var t = grid.cleared()
-    for r in regions {
-      print("plant \(r.plant) area \(r.area) * \(r.perimeter) = \(r.cost) ")
-      _ = dumpRegion(into: &t, r)
+    return regions.map(\.cost).sum()
+  }
+
+  static func part2(input: String) -> Int {
+    let grid = input.grid
+    let regions = createRegions(for: grid)
+
+    let topLeft = "..\n.*".grid
+    let topRight = "..\n*.".grid
+    let top = "..\n**".grid
+    let bottom = "**\n..".grid
+    let bottomLeft = ".*\n..".grid
+    let bottomRight = "*.\n..".grid
+    
+    let hChecks = [
+      (1, [topLeft, top, topRight]),
+      (2, [bottomLeft, bottom, bottomRight])
+    ]
+    
+    func match(_ r: Region, kernel: [[Character]], at: Coordinate) -> Bool {
+      let checks = Coordinate.origin.cartesian(ofSize: 2)
+      return checks.allSatisfy { pt in
+        let c = pt + at
+        print("checking \(pt): c \(c) k \(kernel[pt]!) v \(r.coords.contains(c)) -> \(grid[c]!)")
+        return switch kernel[pt]! {
+          case "*": r.coords.contains(c)
+          default: !r.coords.contains(c)
+        }
+      }
     }
 
-    print(t.display)
-    assert(t == grid)
-    */
+    func matchRange(_ r: Region, bounds: Box, kStart: [[Character]], kEnd: [[Character]]) {
+      let chunks = bb.upperLeft.cartesian(width: bb.width+1, height: bb.height+1)
+        .chunks(ofCount: bounds.width)
+        .map { row in
+          print("row \(row)")
+          return row.chunked { c in
+            let pt = c + [-1, -1]
+            for (v, chks) in hChecks {
+              for k in chks {
+                if match(r, kernel: k, at: pt) {
+                  return v
+                }
+              }
+            }
+            return -1
+          }
+        }
 
-    return regions.map(\.cost).sum()
+      for ch in chunks {
+        for (v, cds) in ch {
+          print("v \(v) \(cds)")
+        }
+      }
+    }
+
+    let a = regions[1]
+    var t = grid.cleared()
+    _ = dumpRegion(into: &t, a)
+
+    print(t.display)
+
+    let bb = Box(from: a.coords)
+    print("ul \(bb.upperLeft) ur \(bb.upperRight) ll \(bb.lowerLeft) lr \(bb.lowerRight) w \(bb.width) h \(bb.height)")
+
+    let start = bb.upperLeft + [-1,-1]
+
+    // find top edges
+    let matches = match(a, kernel: topLeft, at: start)
+
+    print("Matches \(start): \(matches)")
+
+    matchRange(a, bounds: bb, kStart: topLeft, kEnd: topRight)
+
+    return 0
   }
 }
