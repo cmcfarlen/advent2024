@@ -86,29 +86,26 @@ enum Day15 {
       return result
     }
 
-    func update(grid: [[Character]], p: Coordinate, m: Coordinate, with ch: Character) -> (Coordinate, [[Character]]) {
+    func update(grid: [[Character]], p: Coordinate, m: Coordinate, with ch: Character) -> (Coordinate, [[Character]])? {
       let next = p + m
       let nextItem = grid[next]!
       
       guard nextItem != "#" else {
-        return (p, grid)
+        return nil
       }
-
       var result = grid
 
       if nextItem != "." {
-        let (rp, rgrid) = update(grid: result, p: next, m: m, with: nextItem)
-        if rp == next {
-          return (p, grid)
+        guard let (_, r) = update(grid: result, p: next, m: m, with: nextItem) else {
+          return nil
         }
-        result = rgrid
+        result = r
         if m.x == 0 {
           let (sideP, sideCh) = nextItem == "[" ? (next + [1, 0], "]") : (next - [1, 0], "[")
-          let (sidenp, sgrid) = update(grid: result, p: sideP, m: m, with: Character(sideCh))
-          if (sidenp == sideP) {
-            return (p, grid)
+          guard let (_, r) = update(grid: result, p: sideP, m: m, with: Character(sideCh)) else {
+            return nil
           }
-          result = sgrid
+          result = r
         }
       }
 
@@ -123,9 +120,7 @@ enum Day15 {
     let (_, fgrid) = moves.map(direction)
       .reduce((p, widegrid)) { old, mv in
         let (p, grid) = old
-        let new = update(grid: grid, p: p, m: mv, with: "@")
-
-        return new
+        return update(grid: grid, p: p, m: mv, with: "@") ?? old
       }
 
     return fgrid.coords
