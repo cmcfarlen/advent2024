@@ -1,7 +1,7 @@
 import Collections
 
 enum Day16 {
-  enum Facing: Hashable {
+  enum Facing: Hashable, CaseIterable {
     case north
     case east
     case south
@@ -168,14 +168,10 @@ enum Day16 {
     
     while !open.isEmpty {
       guard let currentMin = open.popMin() else {
-        print("Ran out of options before end")
         return nil
       }
       let current = currentMin.wrapped
       if current.p == endP {
-        print("gScore: \(gScore)")
-        print("cameFrom: \(cameFrom)")
-        print("open: \(open)")
         return reconstruct(cameFrom, current)
       }
 
@@ -190,7 +186,6 @@ enum Day16 {
       }
     }
 
-    print("Returning empty handed")
     return nil
   }
 
@@ -245,115 +240,96 @@ enum Day16 {
     return scorePath(path, d: d)
   }
 
-  public static func allPaths(startP: Position, endP: Coordinate, d: (Position, Position) -> Int, score: Int, maxScore: Int) -> Set<Coordinate> {
-    if startP.p == endP {
-      print("found end with score \(score) of \(maxScore)")
-      if score == maxScore {
-        return [startP.p]
+  public static func dijkstra(startP: Position, d: (Position, Position) -> Int) -> (scores: [Position:Int], prev: [Position:Set<Position>]) {
+    var open: Heap<Scored<Position>> = []
+    var gScore: [Position:Int] = [:]
+    var prev: [Position:Set<Position>] = [:]
+    var visited: Set<Position> = []
+
+    gScore[startP] = 0
+    open.insert(Scored(startP, 0))
+    
+    while !open.isEmpty {
+      guard let currentMin = open.popMin() else {
+        break
       }
-      return []
-    }
-    var result: Set<Coordinate> = []
-    for p in startP.neighbors {
-      let dp = d(startP, p)
-      if dp != Int.max && (score + dp) <= maxScore {
-        for np in allPaths(startP: p, endP: endP, d: d, score: score + dp, maxScore: maxScore) {
-          result.insert(np)
+      let current = currentMin.wrapped
+      visited.insert(current)
+
+      for nextP in current.neighbors {
+        if !visited.contains(nextP) {
+          let dScore = d(current, nextP)
+          let testScore = dScore == Int.max ? Int.max : gScore[current]! + dScore
+          if testScore != Int.max {
+            open.insert(Scored(nextP, testScore))
+          }
+          let gs = gScore[nextP, default: Int.max]
+          if testScore <= gs {
+            if testScore == gs {
+              prev[nextP, default: []].insert(current)
+            } else {
+              prev[nextP] = [current]
+            }
+            gScore[nextP] = testScore
+          }
         }
       }
     }
-    if !result.isEmpty {
-      result.insert(startP.p)
-    }
-    return result
+
+    return (scores: gScore, prev: prev)
   }
 
   public static func part2(input: String) -> Int {
-    //let maxScore = part1(input: input)
+    let bestScore = part1(input: input)
     let grid = input.grid
     let startP = grid.coords.first { grid[$0] == "S" }!
     let endP = grid.coords.first { grid[$0] == "E" }!
     let p = Position(p: startP, f: .east)
 
-    // assum p1 is adjacent to p2
-    func d(_ followed: Set<Coordinate>, _ additionalCost: Int) -> (Position,Position) -> Int {
-      return  { (_ p1: Position, _ p2: Position) in
-        if grid[p2.p] == "#" {
-          return Int.max
-        }
-        let add = followed.contains(p2.p) ? additionalCost : 0
-        if additionalCost > 0 {
-          print("add \(additionalCost) \(add)")
-        }
-        return 1 + p1.f.turns(to: p2.f) * 1000 + add
+    func d(_ p1: Position, _ p2: Position) -> Int {
+      if grid[p2.p] == "#" {
+        return Int.max
       }
+      return 1 + p1.f.turns(to: p2.f) * 1000
     }
 
-    func h(_ p: Position) -> Int {
-      // cheapest is to go straight or turn only once
-      let dp = endP - p.p
-      let (ew, ns) = Facing.directions(delta: dp)
-      var cost = 0
-      if dp != Coordinate.origin {
-        if let ns {
-          cost = cost + abs(dp.y) + p.f.turns(to: ns) * 1000
-        }
-        if let ew {
-          cost = cost + abs(dp.x) + p.f.turns(to: ew) * 1000
-        }
-      }
-      return cost
-    }
-    
-    /*
-    let all = allPaths(startP: p, endP: endP, d: d, score: 0, maxScore: maxScore)
-    */
+    let (_, prev) = dijkstra(startP: p, d: d)
 
-    guard let firstPath = astar(startP: p, endP: endP, h: h, d: d([], 0)) else {
-      print("Failed")
-      return 0
-    }
-    let bestScore = scorePath(firstPath, d: d([], 0))
     var followed: Set<Coordinate> = []
-    for p in firstPath {
-      followed.insert(p.p)
-    }
-    
-    /*
-    var thisScore = 0
-    var attempts = 0
-    var additionalCost = 0
-    repeat {
-      additionalCost = attempts * 1000
-      guard let thisPath = astar(startP: p, endP: endP, h: h, d: d(followed, additionalCost)) else {
-        print("Didn't find followup")
-        break
+
+    // dfs to end
+    func allPaths(to: [Position], _ f: ([Position])->Void) {
+      if let s = prev[to.last!] {
+        for p in s {
+          allPaths(to: to + [p], f)
+        }
+      } else {
+        f(to)
       }
-      thisScore = scorePath(thisPath, d: d([], 0))
-      print("score \(thisScore)")
-      //let before = followed.count
-      if thisScore == bestScore && thisPath != firstPath {
-        print("Another best score")
-        for p in firstPath {
-          followed.insert(p.p)
+    }
+
+    let ends = Facing.allCases
+      .map { Position(p: endP, f: $0) }
+
+    for e in ends {
+      allPaths(to: [e]) {
+        let score = scorePath($0, d: d)
+        if score == bestScore {
+          print("path: \($0)")
+          for p in $0 {
+            followed.insert(p.p)
+          }
+
         }
       }
-      /*
-      if followed.count == before {
-        print("Done")
-        break
-      }
-      */
-      attempts += 1
-    } while (attempts < 500)
+    }
 
-*/
+    
     var outgrid = grid
     for p in followed {
       outgrid[p] = "O"
     }
     print(outgrid.display)
-    print(firstPath)
 
     return followed.count
   }
