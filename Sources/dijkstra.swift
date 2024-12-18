@@ -99,10 +99,33 @@ public func astar<T:GridNavigable>(startP: T, endP: Coordinate, h: (T)->Int, d: 
   return nil
 }
 
+public func manhattanDistance(from: Coordinate, to: Coordinate) -> Int {
+  let d = to - from
+  return abs(d.x) + abs(d.y)
+}
+
+public func manhattanDistanceTo(from: Coordinate) -> (Coordinate)->Int {
+  { to in
+    let d = to - from
+    return abs(d.x) + abs(d.y)
+  }
+}
+
 public func reconstruct<T>(_ cameFrom: [T:T], _ to: T) -> [T] {
   var path: [T] = [to]
   var current = to
   while let n = cameFrom[current] {
+    current = n
+    path.append(n)
+  }
+  return path
+}
+
+public func reconstruct<T>(_ cameFrom: [T:Set<T>], _ to: T) -> [T] {
+  var path: [T] = [to]
+  var current = to
+  while let nset = cameFrom[current] {
+    let n = nset.first!
     current = n
     path.append(n)
   }
