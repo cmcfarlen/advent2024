@@ -206,6 +206,10 @@ extension String {
   func splitInts(separator: Character) -> [Int] {
     split(separator: separator).map(String.init).map { Int($0)! }
   }
+
+  var trimmed: String {
+    self.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
 }
 
 public struct Coordinate: Hashable, Sendable {
