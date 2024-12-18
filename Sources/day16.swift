@@ -102,7 +102,7 @@ enum Day16 {
     }
   }
 
-  struct Position: Hashable, Comparable {
+  struct Position: Hashable, Comparable, GridNavigable {
     let p: Coordinate
     let f: Facing
     
@@ -124,71 +124,12 @@ enum Day16 {
       return Position(p: p + f.step, f: f)
     }
 
+    var position: Coordinate { p }
     var neighbors: [Position] {
       [ahead, left, right]
     }
   }
   
-  public static func reconstruct(_ cameFrom: [Position:Position], _ to: Position) -> [Position] {
-    var path: [Position] = [to]
-    var current = to
-    while let n = cameFrom[current] {
-      current = n
-      path.append(n)
-    }
-    return path
-  }
-  
-  struct Scored<T: Equatable>: Equatable, Comparable {
-    let wrapped: T
-    let score: Int
-
-    public static func <(_ lhs: Scored<T>, _ rhs: Scored<T>) -> Bool {
-      lhs.score < rhs.score
-    }
-
-    public static func ==(_ lhs: Scored<T>, _ rhs: Scored<T>) -> Bool {
-      lhs.score == rhs.score && lhs.wrapped == rhs.wrapped
-    }
-
-    init(_ t: T, _ score: Int) {
-      wrapped = t
-      self.score = score
-    }
-  }
-
-  // astar from https://en.wikipedia.org/wiki/A*_search_algorithm
-  public static func astar(startP: Position, endP: Coordinate, h: (Position)->Int, d: (Position, Position) -> Int) -> [Position]? {
-    var open: Heap<Scored<Position>> = []
-    var gScore: [Position:Int] = [:]
-    var cameFrom: [Position:Position] = [:]
-
-    gScore[startP] = 0
-    open.insert(Scored(startP, h(startP)))
-    
-    while !open.isEmpty {
-      guard let currentMin = open.popMin() else {
-        return nil
-      }
-      let current = currentMin.wrapped
-      if current.p == endP {
-        return reconstruct(cameFrom, current)
-      }
-
-      for nextP in current.neighbors {
-        let dScore = d(current, nextP)
-        let testScore = dScore == Int.max ? Int.max : gScore[current]! + dScore
-        if testScore < gScore[nextP, default: Int.max] {
-          cameFrom[nextP] = current
-          gScore[nextP] = testScore
-          open.insert(Scored(nextP, testScore + h(nextP)))
-        }
-      }
-    }
-
-    return nil
-  }
-
   public static func scorePath(_ path: [Position], d: (Position, Position) -> Int) -> Int {
     return path.windows(ofCount: 2)
        .map { w in
@@ -238,45 +179,6 @@ enum Day16 {
     print(outgrid.display)
 
     return scorePath(path, d: d)
-  }
-
-  public static func dijkstra(startP: Position, d: (Position, Position) -> Int) -> (scores: [Position:Int], prev: [Position:Set<Position>]) {
-    var open: Heap<Scored<Position>> = []
-    var gScore: [Position:Int] = [:]
-    var prev: [Position:Set<Position>] = [:]
-    var visited: Set<Position> = []
-
-    gScore[startP] = 0
-    open.insert(Scored(startP, 0))
-    
-    while !open.isEmpty {
-      guard let currentMin = open.popMin() else {
-        break
-      }
-      let current = currentMin.wrapped
-      visited.insert(current)
-
-      for nextP in current.neighbors {
-        if !visited.contains(nextP) {
-          let dScore = d(current, nextP)
-          let testScore = dScore == Int.max ? Int.max : gScore[current]! + dScore
-          if testScore != Int.max {
-            open.insert(Scored(nextP, testScore))
-          }
-          let gs = gScore[nextP, default: Int.max]
-          if testScore <= gs {
-            if testScore == gs {
-              prev[nextP, default: []].insert(current)
-            } else {
-              prev[nextP] = [current]
-            }
-            gScore[nextP] = testScore
-          }
-        }
-      }
-    }
-
-    return (scores: gScore, prev: prev)
   }
 
   public static func part2(input: String) -> Int {

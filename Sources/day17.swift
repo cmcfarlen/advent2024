@@ -173,11 +173,6 @@ enum Day17 {
       return output
     }
 
-    var s = 0
-    var a = 0x13
-    var cnt = 0
-    let expected: [Int] = program
-
     // inputs that produce the first output
     let tests = program.count
     for a in stride(from: 7230976000, to: 100000000000, by: 8) {
