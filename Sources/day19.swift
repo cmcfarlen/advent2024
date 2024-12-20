@@ -98,56 +98,28 @@ enum Day19 {
     let towels = Trie(with: allTowels)
     let patterns = String(parts[1]).lines
 
-    var cache: [String: [[String]]] = [:]
-    func combinations(pattern: String) -> [[String]] {
+    var cache: [Substring: Int] = [:]
+    func combinations(pattern: Substring) -> Int {
+      if pattern.isEmpty {
+        return 1
+      }
       if let c = cache[pattern] {
         return c
       }
-      if pattern.isEmpty {
-        return []
-      }
       let v = towels.findMatches(for: pattern)
-        .flatMap { t in
+        .map { t in
           let rest = pattern.dropFirst(t.count)
-          let res = [String(t)]
           if rest.isEmpty {
-            return [res]
+            return 1
           } else {
-            return combinations(pattern: String(rest)).map { res + $0 }
+            return combinations(pattern: rest)
           }
         }
+        .sum()
       cache[pattern] = v
       return v
     }
 
-    var countCache: [String.SubSequence: Int] = [:]
-    func matchCount(pattern: String.SubSequence) -> Int {
-      print("Matching \(pattern)")
-      if let match = towels.longestMatch(for: pattern) {
-        guard let cnt = countCache[match] else {
-          print("Failed to find count for \(match)")
-          return 0
-        }
-        print("Matchcount: \(pattern) \(match) \(cnt)")
-        let next = pattern.dropFirst(match.count)
-        return cnt * (next.isEmpty ? 1 : matchCount(pattern: pattern.dropFirst(match.count)))
-      }
-      print("Matchcount: \(pattern) is zero")
-      return 0
-    }
-
-    // precompute
-    for t in allTowels {
-      let combos = combinations(pattern: String(t))
-      countCache[t] = combos.count
-      print(t, combos.count, combos)
-    }
-
-    print("Matchcount r", towels.longestMatch(for: "r") ?? "none")
-    print(" trying \(patterns[3])")
-
-    print(patterns[3], matchCount(pattern: patterns[3][...]))
-
-    return patterns.map { matchCount(pattern: $0[...]) }.show(patterns).sum()
+    return patterns.map { combinations(pattern: $0[...]) }.sum()
   }
 }
