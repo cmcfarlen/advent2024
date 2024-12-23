@@ -1,9 +1,10 @@
-today := `date +%d`
+today := env('DAY', `date +%d`)
+part := env('PART', "1")
 
-run day=today part="1":
+run day=today part=part:
   swift run advent2024 {{day}} {{part}}
 
-release day=today part="1":
+release day=today part=part:
   swift build -c release
   .build/release/advent2024 {{day}} {{part}}
 
