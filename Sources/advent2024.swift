@@ -55,6 +55,8 @@ struct advent2024: AsyncParsableCommand {
       [20, 1]: Day20.part1,
       [20, 2]: Day20.part2,
       [21, 1]: Day21.part1,
+      [22, 1]: Day22.part1,
+      [22, 2]: Day22.part2,
       [23, 1]: Day23.part1,
     ]
 
