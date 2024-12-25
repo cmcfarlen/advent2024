@@ -153,6 +153,21 @@ enum Day24 {
       }
     }
 
+    func setValue(wire: String, value: Int) {
+      for bit in 0..<64 {
+        let name = String(format: "%@%02d", wire, bit)
+        guard let w = wires[name] else {
+          return
+        }
+        w.value = ((1<<bit) & value) == 0 ? 0 : 1
+      }
+    }
+
+    func setInput(x: Int, y: Int) {
+      setValue(wire: "x", value: x)
+      setValue(wire: "y", value: y)
+    }
+
     func node(forOutput: String) -> GateNode {
       GateNode(
         circuit: self,
@@ -319,19 +334,66 @@ enum Day24 {
       return t.run()
     }
 
+    //let swaps: [Set<String>] = [["fkb", "bss"], ["z37", "gcg"], ["nnr", "rqf"], ["z31", "rdn"]]
+    //let swaps: [Set<String>] = [["z37", "gcg"], ["nnr", "rqf"], ["z31", "rdn"], ["tnn", "fkb"]]
+    let swaps: [Set<String>] = [["z37", "rrn"], ["nnr", "rqf"], ["z31", "rdn"], ["fkb", "z16"]]
+
+    func test(x: Int, y: Int) -> Int {
+      var t = buildCircuit(input: input)
+
+      for s in swaps {
+        t.swapOutputs(a: s.first!, b: s.second!)
+      }
+
+      t.setInput(x: x, y: y)
+      let z = t.run()
+      let e = x + y
+      if z != e {
+        print("\(x) + \(y): expected \(e) got \(z)")
+        print("   x: \(bin(x))")
+        print("   y: \(bin(y))")
+        print("   z: \(bin(z))")
+        print("   e: \(bin(e))")
+        print(" e^z: \(bin(e^z))")
+        print(" bit: \(incorrectBits(a: e, b: z))")
+      }
+
+      return z
+    }
+
+    func dot() {
+      var t = buildCircuit(input: input)
+
+      for s in swaps {
+        t.swapOutputs(a: s.first!, b: s.second!)
+      }
+
+      spit(t.dot(), to: "circuit.dot")
+    }
+
     let x = circuit.wireValue(wire: "x")
     let y = circuit.wireValue(wire: "y")
-    let ogZ = test()
-    let ngZ = test(swapping: [["z00","z01"]])
 
-    assert(ogZ != ngZ, "\(ogZ) != \(ngZ)")
+    func analyze() {
+      _ = test(x: 0, y: 0)
 
-    let verify = test(swapping: [["cpr", "grr"], ["ccw", "tjk"]])
-    assert(verify == (x + y))
+      print("test 0 + 1")
+      for b in 0...44 {
+        _ = test(x: 1<<b, y: 0)
+        _ = test(x: 0, y: 1<<b)
+      }
 
-    spit(circuit.dot(), to: "circuit.dot")
+      print("test 1 + 1")
+      for b in 0...44 {
+        _ = test(x: 1<<b, y: 1<<b)
+      }
 
-    //let calcZ = x + y
+      _ = test(x: x, y: y)
+    }
+
+    analyze()
+    dot();
+
 
     func fixBits() {
       var verified: [Set<String>] = []
@@ -441,7 +503,7 @@ enum Day24 {
     print("Answer is \(answer) ")
     */
     
-    return ""
+    return swaps.flatMap { $0 }.sorted().joined(separator:",")
   }
 }
 
