@@ -521,6 +521,17 @@ func slurpInput(day: Int) throws -> String {
     return try String(contentsOfFile: path, encoding: .utf8)
 }
 
+func spit(_ v: String, to: String) {
+  let cwd = FileManager.default.currentDirectoryPath
+  let path = "\(cwd)/\(to)"
+
+  do {
+    try v.write(toFile: path, atomically: true, encoding: .utf8)
+  } catch {
+    fatalError("Failed to spit to file \(to): \(error)")
+  }
+}
+
 typealias DayFunction = (String) -> any CustomStringConvertible
 typealias DayFunctionAsync = (String) async -> Int
 

@@ -159,17 +159,66 @@ enum Day24 {
         gate: gate(withOutput: forOutput)!
       )
     }
+    func node(forInput: String) -> GateNode? {
+      guard let g = gate(withInput: forInput) else {
+        return nil
+      }
+      return GateNode(
+        circuit: self,
+        gate: g
+      )
+    }
+
+    func dot() -> String {
+      var s = ""
+      
+      print("digraph {", to: &s)
+
+      for g in gates {
+        print("{\(g.a.name) \(g.b.name)} -> \(g.out.name) [label=\(g.op.rawValue)]", to: &s)
+      }
+
+      print("subgraph {", to: &s)
+      let xs = wires.keys.filter { $0.starts(with: "x") }.sorted()
+      print("rank = same; \(xs.joined(separator: "; "))", to: &s)
+      print("}", to: &s)
+
+      print("subgraph {", to: &s)
+      let ys = wires.keys.filter { $0.starts(with: "y") }.sorted()
+      print("rank = same; \(ys.joined(separator: "; "))", to: &s)
+      print("}", to: &s)
+
+      print("subgraph {", to: &s)
+      let zs = wires.keys.filter { $0.starts(with: "z") }.sorted()
+      print("rank = same; \(zs.joined(separator: "; "))", to: &s)
+      print("}", to: &s)
+
+      print("}", to: &s)
+
+      return s
+    }
   }
 
   struct GateNode {
     let circuit: Circuit
     let gate: Gate
 
-    var parent: GateNode {
-      GateNode(
-        circuit: circuit,
-        gate: circuit.gate(withInput: gate.out.name)!
-      )
+    var id: String {
+      gate.a.name + gate.b.name + gate.out.name
+    }
+
+    var label: String {
+      gate.op.rawValue
+    }
+
+    var parent: GateNode? {
+      if let p = circuit.gate(withInput: gate.out.name) {
+        return GateNode(
+          circuit: circuit,
+          gate: p
+        )
+      }
+      return nil
     }
     var children: [GateNode]? {
       guard let a = circuit.gate(withOutput: gate.a.name),
@@ -280,6 +329,8 @@ enum Day24 {
     let verify = test(swapping: [["cpr", "grr"], ["ccw", "tjk"]])
     assert(verify == (x + y))
 
+    spit(circuit.dot(), to: "circuit.dot")
+
     //let calcZ = x + y
 
     func fixBits() {
@@ -335,7 +386,7 @@ enum Day24 {
       print("Finished correcting with \(verified): \(bin(incorrectMask(bits: badbits)))")
     }
 
-    fixBits()
+    //fixBits()
 
 /*
     let correctZ = x + y
