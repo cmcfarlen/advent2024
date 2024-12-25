@@ -79,16 +79,6 @@ enum Day20 {
        .map { ($0-center, manhattanDistance(from: $0, to: center)) }
        .filter { 2...20 ~= $0.1 }
 
-/*
-      var g = box.grid(with: Character("."))
-      for c in ofs {
-        if 2...20 ~= manhattanDistance(from: center, to: c)  {
-          g[c] = "*"
-        }
-      }
-      print(g.display)
-      */
-
       return ofs
     }()
 
@@ -108,21 +98,21 @@ enum Day20 {
       let sFrom = scores[from, default: Int.max]
       return cheatOffsets
         .map { ($0.0 + from, $0.1) }
-        .filter { grid[$0.0] == "." } // valid location
+        .filter { grid[$0.0] == "." || grid[$0.0] == "E" } // valid location
         .map { ($0.0, $0.1, scores[$0.0, default: Int.max]) } // add score
         .filter { $0.2 != Int.max } // valid location
         .map { ($0.0, $0.1, $0.2 - sFrom - $0.1) } // calculate savings
-        .filter { $0.2 >= 50 }
+        .filter { $0.2 >= 100 }
     }
     
     let allCheats = path.flatMap(cheats)
 
+/*
     let bySavings = allCheats.reduce(into: [:]) { $0[$1.2, default: 0] += 1 }
-
     for (s, cnt) in bySavings.sorted { $0.key < $1.key } {
       print("There are \(cnt) cheats that save \(s) ps")
     }
-    cheatOffsets.show()
+    */
 
     return allCheats.count
   }
