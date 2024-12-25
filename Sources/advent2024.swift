@@ -61,6 +61,7 @@ struct advent2024: AsyncParsableCommand {
       [23, 2]: Day23.part2,
       [24, 1]: Day24.part1,
       [24, 2]: Day24.part2,
+      [25, 1]: Day25.part1,
     ]
 
     let registryAsync: [Key: DayFunctionAsync] = [
