@@ -4,11 +4,11 @@ struct Scored<T: Equatable>: Equatable, Comparable {
   let wrapped: T
   let score: Int
 
-  public static func <(_ lhs: Scored<T>, _ rhs: Scored<T>) -> Bool {
+  public static func < (_ lhs: Scored<T>, _ rhs: Scored<T>) -> Bool {
     lhs.score < rhs.score
   }
 
-  public static func ==(_ lhs: Scored<T>, _ rhs: Scored<T>) -> Bool {
+  public static func == (_ lhs: Scored<T>, _ rhs: Scored<T>) -> Bool {
     lhs.score == rhs.score && lhs.wrapped == rhs.wrapped
   }
 
@@ -28,15 +28,17 @@ extension Coordinate: GridNavigable {
   public var neighbors: [Self] { self.udlr }
 }
 
-public func dijkstra<T:GridNavigable>(startP: T, d: (T, T) -> Int) -> (scores: [T:Int], prev: [T:Set<T>]) {
+public func dijkstra<T: GridNavigable>(startP: T, d: (T, T) -> Int) -> (
+  scores: [T: Int], prev: [T: Set<T>]
+) {
   var open: Heap<Scored<T>> = []
-  var gScore: [T:Int] = [:]
-  var prev: [T:Set<T>] = [:]
+  var gScore: [T: Int] = [:]
+  var prev: [T: Set<T>] = [:]
   var visited: Set<T> = []
 
   gScore[startP] = 0
   open.insert(Scored(startP, 0))
-  
+
   while !open.isEmpty {
     guard let currentMin = open.popMin() else {
       break
@@ -68,14 +70,16 @@ public func dijkstra<T:GridNavigable>(startP: T, d: (T, T) -> Int) -> (scores: [
 }
 
 // astar from https://en.wikipedia.org/wiki/A*_search_algorithm
-public func astar<T:GridNavigable>(startP: T, endP: Coordinate, h: (T)->Int, d: (T, T) -> Int) -> [T]? {
+public func astar<T: GridNavigable>(startP: T, endP: Coordinate, h: (T) -> Int, d: (T, T) -> Int)
+  -> [T]?
+{
   var open: Heap<Scored<T>> = []
-  var gScore: [T:Int] = [:]
-  var cameFrom: [T:T] = [:]
+  var gScore: [T: Int] = [:]
+  var cameFrom: [T: T] = [:]
 
   gScore[startP] = 0
   open.insert(Scored(startP, h(startP)))
-  
+
   while !open.isEmpty {
     guard let currentMin = open.popMin() else {
       return nil
@@ -104,14 +108,14 @@ public func manhattanDistance(from: Coordinate, to: Coordinate) -> Int {
   return abs(d.x) + abs(d.y)
 }
 
-public func manhattanDistanceTo(from: Coordinate) -> (Coordinate)->Int {
+public func manhattanDistanceTo(from: Coordinate) -> (Coordinate) -> Int {
   { to in
     let d = to - from
     return abs(d.x) + abs(d.y)
   }
 }
 
-public func reconstruct<T>(_ cameFrom: [T:T], _ to: T) -> [T] {
+public func reconstruct<T>(_ cameFrom: [T: T], _ to: T) -> [T] {
   var path: [T] = [to]
   var current = to
   while let n = cameFrom[current] {
@@ -121,7 +125,7 @@ public func reconstruct<T>(_ cameFrom: [T:T], _ to: T) -> [T] {
   return path
 }
 
-public func reconstruct<T>(_ cameFrom: [T:Set<T>], _ to: T) -> [T] {
+public func reconstruct<T>(_ cameFrom: [T: Set<T>], _ to: T) -> [T] {
   var path: [T] = [to]
   var current = to
   while let nset = cameFrom[current] {
@@ -131,4 +135,3 @@ public func reconstruct<T>(_ cameFrom: [T:Set<T>], _ to: T) -> [T] {
   }
   return path
 }
-

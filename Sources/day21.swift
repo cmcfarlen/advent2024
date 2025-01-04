@@ -7,19 +7,19 @@ enum Day21 {
 
     var offset: Coordinate {
       switch self {
-        case .left: [-1,0]
-        case .up: [0, -1]
-        case .right: [1, 0]
-        case .down: [0, 1]
+      case .left: [-1, 0]
+      case .up: [0, -1]
+      case .right: [1, 0]
+      case .down: [0, 1]
       }
     }
 
     var symbol: String {
       switch self {
-        case .left: "<"
-        case .up: "^"
-        case .right: ">"
-        case .down: "v"
+      case .left: "<"
+      case .up: "^"
+      case .right: ">"
+      case .down: "v"
       }
     }
 
@@ -76,7 +76,8 @@ enum Day21 {
       for var delta in moves {
         while let d = Dir.dirFor(delta) {
           next = next + d.offset
-          assert(next != gap, "Positioned over gap! \(src)->\(dest) \(gap) \(next) \(delta) \(moves)")
+          assert(
+            next != gap, "Positioned over gap! \(src)->\(dest) \(gap) \(next) \(delta) \(moves)")
           result.append(d)
 
           delta = delta + d.offset
@@ -90,17 +91,17 @@ enum Day21 {
       let delta = src - dest
       let (hor, vert): (Coordinate, Coordinate) = ([delta.x, 0], [0, delta.y])
       switch orientation {
-        case .horizontal:
-          if dest.x == gap.x && src.y == gap.y {
-            return [[hor.x-1, 0], vert, [1, 0]]
-          }
-          return [hor, vert]
-        case .vertical:
-          if dest.y == gap.y && src.x == gap.x {
-            let gdir = Dir.dirFor(gap - dest)!.offset
-            return [vert-gdir, hor, vert+gdir]
-          }
-          return [vert, hor]
+      case .horizontal:
+        if dest.x == gap.x && src.y == gap.y {
+          return [[hor.x - 1, 0], vert, [1, 0]]
+        }
+        return [hor, vert]
+      case .vertical:
+        if dest.y == gap.y && src.x == gap.x {
+          let gdir = Dir.dirFor(gap - dest)!.offset
+          return [vert - gdir, hor, vert + gdir]
+        }
+        return [vert, hor]
       }
     }
   }
@@ -108,7 +109,7 @@ enum Day21 {
   struct Robot {
     let keys: [[Character]]
     let gap: Coordinate
-    var p: Coordinate 
+    var p: Coordinate
 
     init(keys: [[Character]]) {
       self.keys = keys
@@ -137,17 +138,17 @@ enum Day21 {
   }
 
   static let numeric =
-  """
-  789
-  456
-  123
-   0A
-  """.grid
-  static let directional = 
-  """
-   ^A
-  <v>
-  """.grid
+    """
+    789
+    456
+    123
+     0A
+    """.grid
+  static let directional =
+    """
+     ^A
+    <v>
+    """.grid
 
   static func part1(input: String) -> Int {
     let codes = input.lines
@@ -164,12 +165,14 @@ enum Day21 {
     func solve(for code: String, strategy: PositionStrategy) -> Int {
       var sequence = code
       for idx in bots.indices {
-        sequence = String(bots[idx].output(sequence: sequence, strategy: strategy)
-          .map {
-            $0.map(\.symbol).joined()
-          }
-          .joined(by: "A"))
-          .appending("A")
+        sequence = String(
+          bots[idx].output(sequence: sequence, strategy: strategy)
+            .map {
+              $0.map(\.symbol).joined()
+            }
+            .joined(by: "A")
+        )
+        .appending("A")
       }
       print("\(code): \(sequence) len \(sequence.count)")
 
@@ -181,12 +184,14 @@ enum Day21 {
       for l in code {
         var sequence = String(l)
         for idx in bots.indices {
-          sequence = String(bots[idx].output(sequence: sequence, strategy: strategy)
-            .map {
-              $0.map(\.symbol).joined()
-            }
-            .joined(by: "A"))
-            .appending("A")
+          sequence = String(
+            bots[idx].output(sequence: sequence, strategy: strategy)
+              .map {
+                $0.map(\.symbol).joined()
+              }
+              .joined(by: "A")
+          )
+          .appending("A")
           botSeq[idx].append((sequence, bots[idx].keys[bots[idx].p]))
         }
       }

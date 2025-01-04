@@ -64,26 +64,26 @@ enum Day12 {
     let bottom = "**\n..".grid
     let bottomLeft = ".*\n..".grid
     let bottomRight = "*.\n..".grid
-    
+
     let hChecks = [
       (1, [topLeft, top, topRight]),
-      (2, [bottomLeft, bottom, bottomRight])
+      (2, [bottomLeft, bottom, bottomRight]),
     ]
-    
+
     func match(_ r: Region, kernel: [[Character]], at: Coordinate) -> Bool {
       let checks = Coordinate.origin.cartesian(ofSize: 2)
       return checks.allSatisfy { pt in
         let c = pt + at
         print("checking \(pt): c \(c) k \(kernel[pt]!) v \(r.coords.contains(c)) -> \(grid[c]!)")
         return switch kernel[pt]! {
-          case "*": r.coords.contains(c)
-          default: !r.coords.contains(c)
+        case "*": r.coords.contains(c)
+        default: !r.coords.contains(c)
         }
       }
     }
 
     func matchRange(_ r: Region, bounds: Box, kStart: [[Character]], kEnd: [[Character]]) {
-      let chunks = bb.upperLeft.cartesian(width: bb.width+1, height: bb.height+1)
+      let chunks = bb.upperLeft.cartesian(width: bb.width + 1, height: bb.height + 1)
         .chunks(ofCount: bounds.width)
         .map { row in
           print("row \(row)")
@@ -114,9 +114,11 @@ enum Day12 {
     print(t.display)
 
     let bb = Box(from: a.coords)
-    print("ul \(bb.upperLeft) ur \(bb.upperRight) ll \(bb.lowerLeft) lr \(bb.lowerRight) w \(bb.width) h \(bb.height)")
+    print(
+      "ul \(bb.upperLeft) ur \(bb.upperRight) ll \(bb.lowerLeft) lr \(bb.lowerRight) w \(bb.width) h \(bb.height)"
+    )
 
-    let start = bb.upperLeft + [-1,-1]
+    let start = bb.upperLeft + [-1, -1]
 
     // find top edges
     let matches = match(a, kernel: topLeft, at: start)

@@ -6,12 +6,12 @@ enum Day24 {
 
     func eval(a: Int, b: Int) -> Int {
       switch self {
-        case .and:
-          a & b != 0 ? 1 : 0
-        case .or:
-          a | b != 0 ? 1 : 0
-        case .xor:
-          a ^ b != 0 ? 1 : 0
+      case .and:
+        a & b != 0 ? 1 : 0
+      case .or:
+        a | b != 0 ? 1 : 0
+      case .xor:
+        a ^ b != 0 ? 1 : 0
       }
     }
   }
@@ -93,7 +93,8 @@ enum Day24 {
       let parts = s.split(separator: " -> ")
       let expr = parts[0].split(separator: " ").map(String.init)
 
-      let gate = Gate(a: wire(expr[0]), b: wire(expr[2]), out: wire(String(parts[1])), op: Op(rawValue: expr[1])!)
+      let gate = Gate(
+        a: wire(expr[0]), b: wire(expr[2]), out: wire(String(parts[1])), op: Op(rawValue: expr[1])!)
       gates.append(gate)
       return gate
     }
@@ -159,7 +160,7 @@ enum Day24 {
         guard let w = wires[name] else {
           return
         }
-        w.value = ((1<<bit) & value) == 0 ? 0 : 1
+        w.value = ((1 << bit) & value) == 0 ? 0 : 1
       }
     }
 
@@ -186,7 +187,7 @@ enum Day24 {
 
     func dot() -> String {
       var s = ""
-      
+
       print("digraph {", to: &s)
 
       for g in gates {
@@ -237,7 +238,8 @@ enum Day24 {
     }
     var children: [GateNode]? {
       guard let a = circuit.gate(withOutput: gate.a.name),
-            let b = circuit.gate(withOutput: gate.b.name) else {
+        let b = circuit.gate(withOutput: gate.b.name)
+      else {
         return nil
       }
       return [
@@ -248,7 +250,7 @@ enum Day24 {
         GateNode(
           circuit: circuit,
           gate: b
-        )
+        ),
       ]
     }
 
@@ -285,7 +287,7 @@ enum Day24 {
 
   static func bin(_ x: Int) -> String {
     let s = String(x, radix: 2)
-    let pad = String(repeating: "0", count: 64-s.count)
+    let pad = String(repeating: "0", count: 64 - s.count)
     return pad + s
   }
 
@@ -379,21 +381,20 @@ enum Day24 {
 
       print("test 0 + 1")
       for b in 0...44 {
-        _ = test(x: 1<<b, y: 0)
-        _ = test(x: 0, y: 1<<b)
+        _ = test(x: 1 << b, y: 0)
+        _ = test(x: 0, y: 1 << b)
       }
 
       print("test 1 + 1")
       for b in 0...44 {
-        _ = test(x: 1<<b, y: 1<<b)
+        _ = test(x: 1 << b, y: 1 << b)
       }
 
       _ = test(x: x, y: y)
     }
 
     analyze()
-    dot();
-
+    dot()
 
     func fixBits() {
       var verified: [Set<String>] = []
@@ -405,7 +406,8 @@ enum Day24 {
         print("Recalculating incorrectBits")
         let badbits = incorrectBits(a: lastZ, b: correctZ)
         outer: for bit in badbits {
-          let outputs = circuit
+          let outputs =
+            circuit
             .node(forOutput: "z\(bit)")
             .allNodes
             .map(\.gate.out.name)
@@ -417,7 +419,7 @@ enum Day24 {
           )
 
           print("Fixing bit \(bit) \(pairs.count) pairs")
-          for i in 1...(4-verified.count) {
+          for i in 1...(4 - verified.count) {
             print("Trying \(i) size combinations")
             print("corrZ: \(bin(correctZ))")
             print("lastZ: \(bin(lastZ))")
@@ -450,7 +452,7 @@ enum Day24 {
 
     //fixBits()
 
-/*
+    /*
     let correctZ = x + y
     let failZ = test()
 
@@ -502,8 +504,8 @@ enum Day24 {
     }
     print("Answer is \(answer) ")
     */
-    
-    return swaps.flatMap { $0 }.sorted().joined(separator:",")
+
+    return swaps.flatMap { $0 }.sorted().joined(separator: ",")
   }
 }
 

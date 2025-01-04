@@ -4,7 +4,7 @@ enum Day25 {
     var result: [Int] = []
     for x in 0..<g.width {
       var cnt = 0
-      for y in 1..<(g.height-1) {
+      for y in 1..<(g.height - 1) {
         let c: Coordinate = [x, y]
         if g[c] == "#" {
           cnt += 1

@@ -9,93 +9,93 @@ enum Day16 {
 
     func turns(to f: Facing) -> Int {
       switch self {
-        case .north:
-          switch f {
-            case .north: 0
-            case .east: 1
-            case .south: 2
-            case .west: 1
-          }
-        case .east:
-          switch f {
-            case .north: 1
-            case .east: 0
-            case .south: 1
-            case .west: 2
-          }
-        case .south:
-          switch f {
-            case .north: 2
-            case .east: 1
-            case .south: 0
-            case .west: 1
-          }
-        case .west:
-          switch f {
-            case .north: 1
-            case .east: 2
-            case .south: 1
-            case .west: 0
-          }
+      case .north:
+        switch f {
+        case .north: 0
+        case .east: 1
+        case .south: 2
+        case .west: 1
+        }
+      case .east:
+        switch f {
+        case .north: 1
+        case .east: 0
+        case .south: 1
+        case .west: 2
+        }
+      case .south:
+        switch f {
+        case .north: 2
+        case .east: 1
+        case .south: 0
+        case .west: 1
+        }
+      case .west:
+        switch f {
+        case .north: 1
+        case .east: 2
+        case .south: 1
+        case .west: 0
+        }
       }
     }
-    
+
     var left: Facing {
       switch self {
-        case .north:
-          .west
-        case .west:
-          .south
-        case .south:
-          .east
-        case .east:
-          .north
+      case .north:
+        .west
+      case .west:
+        .south
+      case .south:
+        .east
+      case .east:
+        .north
       }
     }
 
     var right: Facing {
       switch self {
-        case .north:
-          .east
-        case .east:
-          .south
-        case .south:
-          .west
-        case .west:
-          .north
+      case .north:
+        .east
+      case .east:
+        .south
+      case .south:
+        .west
+      case .west:
+        .north
       }
     }
-    
+
     var step: Coordinate {
       switch self {
-        case .north:
-          [0, -1]
-        case .east:
-          [1, 0]
-        case .south:
-          [0, 1]
-        case .west:
-          [-1, 0]
+      case .north:
+        [0, -1]
+      case .east:
+        [1, 0]
+      case .south:
+        [0, 1]
+      case .west:
+        [-1, 0]
       }
     }
 
     var symbol: Character {
       switch self {
-        case .north:
-          "^"
-        case .east:
-          ">"
-        case .south:
-          "v"
-        case .west:
-          "<"
+      case .north:
+        "^"
+      case .east:
+        ">"
+      case .south:
+        "v"
+      case .west:
+        "<"
       }
     }
 
-    static func directions(from f: Coordinate, to t: Coordinate) -> (ew: Facing?,ns: Facing?) {
+    static func directions(from f: Coordinate, to t: Coordinate) -> (ew: Facing?, ns: Facing?) {
       directions(delta: t - f)
     }
-    static func directions(delta dp: Coordinate) -> (ew: Facing?,ns: Facing?) {
+    static func directions(delta dp: Coordinate) -> (ew: Facing?, ns: Facing?) {
       let ew: Facing? = dp.x == 0 ? nil : dp.x > 0 ? .east : .west
       let ns: Facing? = dp.y == 0 ? nil : dp.y > 0 ? .south : .north
       return (ew: ew, ns: ns)
@@ -105,8 +105,8 @@ enum Day16 {
   struct Position: Hashable, Comparable, GridNavigable {
     let p: Coordinate
     let f: Facing
-    
-    public static func <(_ lhs: Position, _ rhs: Position) -> Bool {
+
+    public static func < (_ lhs: Position, _ rhs: Position) -> Bool {
       lhs.p < rhs.p
     }
 
@@ -129,13 +129,14 @@ enum Day16 {
       [ahead, left, right]
     }
   }
-  
+
   public static func scorePath(_ path: [Position], d: (Position, Position) -> Int) -> Int {
     return path.windows(ofCount: 2)
-       .map { w in
-       let w = Array(w)
-       return w.count == 2 ? d(w[0], w[1]) : 0 }
-       .sum()
+      .map { w in
+        let w = Array(w)
+        return w.count == 2 ? d(w[0], w[1]) : 0
+      }
+      .sum()
   }
 
   public static func part1(input: String) -> Int {
@@ -143,7 +144,7 @@ enum Day16 {
     let startP = grid.coords.first { grid[$0] == "S" }!
     let endP = grid.coords.first { grid[$0] == "E" }!
     let p = Position(p: startP, f: .east)
-    
+
     // assum p1 is adjacent to p2
     func d(_ p1: Position, _ p2: Position) -> Int {
       if grid[p2.p] == "#" {
@@ -167,7 +168,7 @@ enum Day16 {
       }
       return cost
     }
-    
+
     guard let path = astar(startP: p, endP: endP, h: h, d: d) else {
       print("Failed")
       return 0
@@ -200,7 +201,7 @@ enum Day16 {
     var followed: Set<Coordinate> = []
 
     // dfs to end
-    func allPaths(to: [Position], _ f: ([Position])->Void) {
+    func allPaths(to: [Position], _ f: ([Position]) -> Void) {
       if let s = prev[to.last!] {
         for p in s {
           allPaths(to: to + [p], f)
@@ -226,7 +227,6 @@ enum Day16 {
       }
     }
 
-    
     var outgrid = grid
     for p in followed {
       outgrid[p] = "O"

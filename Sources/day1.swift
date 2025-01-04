@@ -1,4 +1,3 @@
-
 enum Day1 {
   static func part1(input: String) -> Int {
     let r = input.lines
@@ -10,11 +9,10 @@ enum Day1 {
       .mapValues { $0.sorted() }
 
     let sum = zip(r[0]!, r[1]!)
-     .map {
-       abs($1 - $0)
-     }
-     .sum()
-
+      .map {
+        abs($1 - $0)
+      }
+      .sum()
 
     return sum
   }

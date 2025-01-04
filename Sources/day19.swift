@@ -73,7 +73,6 @@ class Trie {
   }
 }
 
-
 enum Day19 {
   public static func part1(input: String) -> Int {
     let parts = input.split(separator: "\n\n")

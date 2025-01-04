@@ -53,13 +53,13 @@ enum Day4 {
     ].map(\.grid)
     let puzzle = input.grid
 
-    let m =  puzzle
-     .coords
-     .flatMap { pt in
+    let m = puzzle
+      .coords
+      .flatMap { pt in
         kernels.compactMap { kernel in
           puzzle.matches(kernel, offset: pt) ? 1 : nil
         }
-     }
+      }
 
     return m.count
   }
@@ -84,17 +84,17 @@ enum Day4 {
       M*M
       *A*
       S*S
-      """
+      """,
     ].map(\.grid)
     let puzzle = input.grid
 
-    let m =  puzzle
-     .coords
-     .flatMap { pt in
+    let m = puzzle
+      .coords
+      .flatMap { pt in
         kernels.compactMap { kernel in
           puzzle.matches(kernel, offset: pt) ? 1 : nil
         }
-     }
+      }
 
     return m.count
   }

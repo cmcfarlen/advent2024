@@ -1,12 +1,13 @@
 import Foundation
+
 enum Day22 {
   struct RNG: Sequence, IteratorProtocol {
     var n: Int
 
     mutating func next() -> Int? {
-      n = (n ^ (n * 64)) % 16777216
-      n = (n ^ Int(floor(Double(n) / 32.0))) % 16777216
-      n = (n ^ (n * 2048)) % 16777216
+      n = (n ^ (n * 64)) % 16_777_216
+      n = (n ^ Int(floor(Double(n) / 32.0))) % 16_777_216
+      n = (n ^ (n * 2048)) % 16_777_216
       return n
     }
   }
@@ -32,9 +33,9 @@ enum Day22 {
     func rng(seed: Int) -> some Sequence<Int> {
       return sequence(first: seed) { p in
         var n = p
-        n = (n ^ (n * 64)) % 16777216
-        n = (n ^ Int(floor(Double(n) / 32.0))) % 16777216
-        n = (n ^ (n * 2048)) % 16777216
+        n = (n ^ (n * 64)) % 16_777_216
+        n = (n ^ Int(floor(Double(n) / 32.0))) % 16_777_216
+        n = (n ^ (n * 2048)) % 16_777_216
         return n
       }
     }
@@ -58,8 +59,6 @@ enum Day22 {
       .show(Array(prices.dropFirst()))
     }
 
-
     return 0
   }
 }
-

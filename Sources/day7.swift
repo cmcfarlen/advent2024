@@ -1,9 +1,9 @@
 enum Day7 {
   static func mag(_ a: Int) -> Int {
     var m = 10
-      while a / m > 0 {
-        m *= 10
-      }
+    while a / m > 0 {
+      m *= 10
+    }
     return m
   }
 

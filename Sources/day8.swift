@@ -7,16 +7,17 @@ enum Day8 {
 
     func resonantFrequencies(for f: [Coordinate]) -> Set<Coordinate> {
       return f.permutations(ofCount: 2)
-       .map { pair in
-         let d = pair[1] - pair[0]
-         return [pair[1] + d, pair[0] - d]
-       }
-       .reduce([]) {
-         $0.union($1)
-       }
+        .map { pair in
+          let d = pair[1] - pair[0]
+          return [pair[1] + d, pair[0] - d]
+        }
+        .reduce([]) {
+          $0.union($1)
+        }
     }
 
-    return nodes
+    return
+      nodes
       .remove { $0.key == "." }
       .map(\.value)
       .map(resonantFrequencies)
@@ -33,27 +34,29 @@ enum Day8 {
 
     func resonantFrequencies(for f: [Coordinate]) -> Set<Coordinate> {
       return f.permutations(ofCount: 2)
-       .map { pair in
-         let d = pair[1] - pair[0]
+        .map { pair in
+          let d = pair[1] - pair[0]
 
-         if abs(gcd(d.x, d.y)) != 1 {
-           print("Not coprime: \(d) \(gcd(d.x, d.y))")
-         }
+          if abs(gcd(d.x, d.y)) != 1 {
+            print("Not coprime: \(d) \(gcd(d.x, d.y))")
+          }
 
-         return iterate(pair[1]) {
-           let n = $0 + d
-           return grid.contains(coord: n) ? n : nil
-         } + iterate(pair[0]) {
-           let n = $0 - d
-           return grid.contains(coord: n) ? n : nil
-         }
-       }
-       .reduce([]) {
-         $0.union($1)
-       }
+          return iterate(pair[1]) {
+            let n = $0 + d
+            return grid.contains(coord: n) ? n : nil
+          }
+            + iterate(pair[0]) {
+              let n = $0 - d
+              return grid.contains(coord: n) ? n : nil
+            }
+        }
+        .reduce([]) {
+          $0.union($1)
+        }
     }
 
-    return nodes
+    return
+      nodes
       .remove { $0.key == "." }
       .map(\.value)
       .map(resonantFrequencies)

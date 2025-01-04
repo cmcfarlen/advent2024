@@ -1,12 +1,12 @@
 enum Day15 {
   static func direction(of c: Character) -> Coordinate {
     switch c {
-      case "<": [-1, 0]
-      case ">": [1, 0]
-      case "^": [0, -1]
-      case "v": [0, 1]
-      default:
-        fatalError("Invalid move '\(c)'")
+    case "<": [-1, 0]
+    case ">": [1, 0]
+    case "^": [0, -1]
+    case "v": [0, 1]
+    default:
+      fatalError("Invalid move '\(c)'")
     }
   }
 
@@ -19,7 +19,7 @@ enum Day15 {
     func update(grid: inout [[Character]], p: Coordinate, m: Coordinate) -> Coordinate {
       let next = p + m
       let nextItem = grid[next]!
-      
+
       guard nextItem != "#" else {
         return p
       }
@@ -66,30 +66,32 @@ enum Day15 {
 
     func widen(grid: [[Character]]) -> [[Character]] {
       var result = Box(from: grid.coords).widen(scale: [2, 1]).grid(with: Character(" "))
-      assert(result.width == 2*grid.width, "Box width wrong \(result.width) vs \(grid.width)")
+      assert(result.width == 2 * grid.width, "Box width wrong \(result.width) vs \(grid.width)")
       assert(result.height == grid.height, "Box height wrong \(result.height) vs \(grid.height)")
 
       for c in grid.coords {
         let old = grid[c]!
-        let newC: Coordinate = [c.x*2, c.y]
+        let newC: Coordinate = [c.x * 2, c.y]
         if old == "O" {
           result[newC] = "["
-          result[newC+[1,0]] = "]"
+          result[newC + [1, 0]] = "]"
         } else if old == "@" {
           result[newC] = "@"
-          result[newC+[1,0]] = "."
+          result[newC + [1, 0]] = "."
         } else {
           result[newC] = old
-          result[newC+[1,0]] = old
+          result[newC + [1, 0]] = old
         }
       }
       return result
     }
 
-    func update(grid: [[Character]], p: Coordinate, m: Coordinate, with ch: Character) -> (Coordinate, [[Character]])? {
+    func update(grid: [[Character]], p: Coordinate, m: Coordinate, with ch: Character) -> (
+      Coordinate, [[Character]]
+    )? {
       let next = p + m
       let nextItem = grid[next]!
-      
+
       guard nextItem != "#" else {
         return nil
       }

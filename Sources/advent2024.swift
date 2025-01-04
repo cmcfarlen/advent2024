@@ -1,6 +1,6 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
-// 
+//
 // Swift Argument Parser
 // https://swiftpackageindex.com/apple/swift-argument-parser/documentation
 
@@ -65,7 +65,7 @@ struct advent2024: AsyncParsableCommand {
     ]
 
     let registryAsync: [Key: DayFunctionAsync] = [
-      [11, 2]: Day11.part2smartasync,
+      [11, 2]: Day11.part2smartasync
     ]
 
     if day == 0 {
@@ -101,12 +101,12 @@ struct advent2024: AsyncParsableCommand {
     }
 
     if let dayf = registryAsync[key] {
-      let (result, duration) = 
-          await Task(priority: .high) { [dayf] in
-            await measure {
-              await dayf(input)
-            }
-          }.value
+      let (result, duration) =
+        await Task(priority: .high) { [dayf] in
+          await measure {
+            await dayf(input)
+          }
+        }.value
 
       print("day \(day) part \(part): \(result) in \(duration)")
       return

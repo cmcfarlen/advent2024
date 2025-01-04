@@ -11,24 +11,25 @@ enum Day2 {
   }
   static func allInRange(_ v: [Int]) -> Bool {
     v.adjacentPairs().allSatisfy { (a, b) in
-    1...3 ~= diff(a, b)
+      1...3 ~= diff(a, b)
     }
   }
   static func safe(_ v: [Int]) -> Bool {
     (allIncreasing(v) || allDecreasing(v))
-    && allInRange(v)
+      && allInRange(v)
   }
   static func safeDroppingOne(_ v: [Int]) -> Bool {
-    safe(v) ||
-    !(0..<v.count).map {
-      v.dropNth($0)
-    }.filter(safe)
-    .isEmpty
+    safe(v)
+      || !(0..<v.count).map {
+        v.dropNth($0)
+      }.filter(safe)
+        .isEmpty
   }
 
   static func part1(input: String) -> Int {
     let lines = input.lines
-    let result = lines
+    let result =
+      lines
       .map(\.whitespace)
       .map {
         $0.map { Int($0)! }
@@ -37,11 +38,12 @@ enum Day2 {
       .filter { $0 }
       .count
 
-      return result
+    return result
   }
   static func part2(input: String) -> Int {
     let lines = input.lines
-    let result = lines
+    let result =
+      lines
       .map(\.whitespace)
       .map {
         $0.map { Int($0)! }
@@ -50,6 +52,6 @@ enum Day2 {
       .filter { $0 }
       .count
 
-      return result
+    return result
   }
 }

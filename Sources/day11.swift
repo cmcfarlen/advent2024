@@ -13,7 +13,7 @@ enum Day11 {
 
   static func blink(_ stones: ArraySlice<Int>) -> [Int] {
     var result = [Int]()
-    result.reserveCapacity(stones.count*2)
+    result.reserveCapacity(stones.count * 2)
     for s in stones {
       if s == 0 {
         result.append(1)
@@ -67,13 +67,13 @@ enum Day11 {
         }
 
         let (s, m) = await measure {
-            var tmp = [[Int]]()
-            tmp.reserveCapacity(stones.count * 2)
+          var tmp = [[Int]]()
+          tmp.reserveCapacity(stones.count * 2)
 
-            stones = await group.reduce(into: tmp) {
-              $0.append($1)
-            }
-            return stones.map(\.count).sum()
+          stones = await group.reduce(into: tmp) {
+            $0.append($1)
+          }
+          return stones.map(\.count).sum()
         }
 
         print("\(x): \(s) - \(m) \(chunks) chunks")
@@ -83,9 +83,9 @@ enum Day11 {
       return stones.count
     }
   }
-  
+
   // blink a stone some number of times and return the number of stones
-  static func blinkStone(cache: inout [Int:[Int:Int]], stone sin: Int, times: Int) -> Int {
+  static func blinkStone(cache: inout [Int: [Int: Int]], stone sin: Int, times: Int) -> Int {
     if let v = cache[times]?[sin] {
       return v
     }
@@ -113,7 +113,7 @@ enum Day11 {
   static func part2smart(input: String) -> Int {
     let stones = input.lines.first!.splitInts(separator: " ")
 
-    var cache = [Int:[Int:Int]]()
+    var cache = [Int: [Int: Int]]()
     return stones.map { blinkStone(cache: &cache, stone: $0, times: 75) }.sum()
   }
 
@@ -123,7 +123,7 @@ enum Day11 {
     return await withTaskGroup(of: Int.self) { group in
       for s in stones {
         group.addTask {
-          var cache = [Int:[Int:Int]]()
+          var cache = [Int: [Int: Int]]()
           return blinkStone(cache: &cache, stone: s, times: 75)
         }
       }

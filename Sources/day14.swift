@@ -1,43 +1,45 @@
 enum Day14 {
   static let bounds = Box(width: 101, height: 103)
 
-
   // all of this math stuff turned out to be not the right thing at all
 
-  static func xyFuncs(_ p: Coordinate, _ v: Coordinate) -> (xofy: (_ y: Int)->Int, yofx: (_ x: Int)->Int) {
+  static func xyFuncs(_ p: Coordinate, _ v: Coordinate) -> (
+    xofy: (_ y: Int) -> Int, yofx: (_ x: Int) -> Int
+  ) {
     (
-    { y in
-       //p.x - (v.x*p.y) / v.y - (v.x * y) / v.y
-       (v.x*y)/v.y - v.x*p.y/v.y + p.x
-    },
-    { x in
-       (v.y*x / v.x) + p.y - (v.y * p.x) / v.x
-    }
+      { y in
+        //p.x - (v.x*p.y) / v.y - (v.x * y) / v.y
+        (v.x * y) / v.y - v.x * p.y / v.y + p.x
+      },
+      { x in
+        (v.y * x / v.x) + p.y - (v.y * p.x) / v.x
+      }
     )
   }
 
-  static func boxIntercepts(_ p: Coordinate, _ v: Coordinate) -> [Coordinate]
-   {
-   //let y0 = p.y - (v.y * p.x) / v.x
-   //let x0 = p.x - (v.x*p.y) / v.y
+  static func boxIntercepts(_ p: Coordinate, _ v: Coordinate) -> [Coordinate] {
+    //let y0 = p.y - (v.y * p.x) / v.x
+    //let x0 = p.x - (v.x*p.y) / v.y
 
-   let (xofy, yofx) = xyFuncs(p, v)
+    let (xofy, yofx) = xyFuncs(p, v)
 
-   // vector will only intercect at two points
-   return [[bounds.left, yofx(bounds.left)],
-           [bounds.right, yofx(bounds.right)],
-           [xofy(bounds.top), bounds.top],
-           [xofy(bounds.bottom), bounds.bottom]]//.filter {bounds.contains($0)}
+    // vector will only intercect at two points
+    return [
+      [bounds.left, yofx(bounds.left)],
+      [bounds.right, yofx(bounds.right)],
+      [xofy(bounds.top), bounds.top],
+      [xofy(bounds.bottom), bounds.bottom],
+    ]  //.filter {bounds.contains($0)}
   }
 
-    // x and y intercept
-    //let intercepts = boxIntercepts(p, v)
-    // length of the line segment
-    //let endP = p + v * t
-    //let traveled = endP - p
-    // remaining distance
-    // intercept + distance
-    //return (intercepts, endP, traveled)
+  // x and y intercept
+  //let intercepts = boxIntercepts(p, v)
+  // length of the line segment
+  //let endP = p + v * t
+  //let traveled = endP - p
+  // remaining distance
+  // intercept + distance
+  //return (intercepts, endP, traveled)
 
   // end of dumb maths
 
@@ -55,7 +57,8 @@ enum Day14 {
       .map {
         $0.split(separator: " ")
           .map {
-            Coordinate(fromArray: $0.split(separator: "=")
+            Coordinate(
+              fromArray: $0.split(separator: "=")
                 .dropFirst()
                 .flatMap {
                   $0.split(separator: ",")
@@ -75,7 +78,7 @@ enum Day14 {
     let bots = parse(input: input)
 
     let answer = bots.map {
-        moveBot($0.p, $0.v, 100)
+      moveBot($0.p, $0.v, 100)
     }
 
     var g: [[Int]] = bounds.grid(with: 0)

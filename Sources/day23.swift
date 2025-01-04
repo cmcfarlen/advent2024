@@ -4,7 +4,7 @@ enum Day23 {
       .map {
         $0.split(separator: "-").map(String.init)
       }
-    let connectedTo = pairs.reduce(into: [String:Set<String>]()) { s, p in
+    let connectedTo = pairs.reduce(into: [String: Set<String>]()) { s, p in
       s[p[0], default: []].insert(p[1])
       s[p[1], default: []].insert(p[0])
     }
@@ -32,7 +32,7 @@ enum Day23 {
       .map {
         $0.split(separator: "-").map(String.init)
       }
-    let connectedTo = pairs.reduce(into: [String:Set<String>]()) { s, p in
+    let connectedTo = pairs.reduce(into: [String: Set<String>]()) { s, p in
       s[p[0], default: []].insert(p[1])
       s[p[1], default: []].insert(p[0])
     }
@@ -50,14 +50,17 @@ enum Day23 {
       var xx = x
       for v in p {
         let n = connectedTo[v] ?? []
-        result.append(contentsOf: maxClique(r: r.union([v]), p: pp.intersection(n), x: xx.intersection(n)))
+        result.append(
+          contentsOf: maxClique(r: r.union([v]), p: pp.intersection(n), x: xx.intersection(n)))
         pp.remove(v)
         xx.insert(v)
       }
       return result
     }
 
-    let max = maxClique(r: [], p: Set<String>(connectedTo.keys), x: []).sorted { $0.count > $1.count }.first!
+    let max = maxClique(r: [], p: Set<String>(connectedTo.keys), x: []).sorted {
+      $0.count > $1.count
+    }.first!
 
     return max.sorted().joined(separator: ",")
   }

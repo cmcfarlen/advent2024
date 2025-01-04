@@ -7,26 +7,26 @@ enum Day6 {
 
     var dir: Coordinate {
       switch self {
-        case .up: [0, -1]
-        case .down: [0, 1]
-        case .left: [-1, 0]
-        case .right: [1, 0]
+      case .up: [0, -1]
+      case .down: [0, 1]
+      case .left: [-1, 0]
+      case .right: [1, 0]
       }
     }
 
     var right: Facing {
       switch self {
-        case .up: .right
-        case .down: .left
-        case .left: .up
-        case .right: .down
+      case .up: .right
+      case .down: .left
+      case .left: .up
+      case .right: .down
       }
     }
 
     var travel: Character {
       switch self {
-        case .up, .down: "|"
-        case .left, .right: "-"
+      case .up, .down: "|"
+      case .left, .right: "-"
       }
     }
   }
@@ -40,12 +40,14 @@ enum Day6 {
   static func part1(input: String) -> Int {
     var grid = input.grid
 
-    var p = Coordinate.origin.cartesian(width: grid.width, height: grid.height).first { grid[$0] == Facing.up.rawValue }
+    var p = Coordinate.origin.cartesian(width: grid.width, height: grid.height).first {
+      grid[$0] == Facing.up.rawValue
+    }
     var f = Facing.up
 
     func nextP(_ p: Coordinate) -> Coordinate? {
       let next = p + f.dir
-      let c = grid[next, default: "x"] 
+      let c = grid[next, default: "x"]
       guard c != "x" else {
         return nil
       }
@@ -67,13 +69,15 @@ enum Day6 {
   static func part2(input: String) -> Int {
     let grid = input.grid
 
-    let startP = Coordinate.origin.cartesian(width: grid.width, height: grid.height).first { grid[$0] == Facing.up.rawValue }
+    let startP = Coordinate.origin.cartesian(width: grid.width, height: grid.height).first {
+      grid[$0] == Facing.up.rawValue
+    }
     var f = Facing.up
 
     func nextP(_ grid: inout [[Character]], _ p: Coordinate) -> Result {
       let pc = grid[p]
       let next = p + f.dir
-      let c = grid[next, default: "x"] 
+      let c = grid[next, default: "x"]
       guard c != "x" else {
         return .outside
       }

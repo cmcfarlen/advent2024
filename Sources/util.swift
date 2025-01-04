@@ -1,5 +1,5 @@
-import Foundation
 import Algorithms
+import Foundation
 
 struct Key: Hashable {
   let day: Int
@@ -25,15 +25,15 @@ extension Key: Comparable {
 
 extension Sequence {
   @inlinable
-  func groupBy<T: Hashable>(_ f: (Element) throws -> T) rethrows -> [T: [Element]] { 
-    try self.reduce(into: [T:[Element]]()) { r, e in
+  func groupBy<T: Hashable>(_ f: (Element) throws -> T) rethrows -> [T: [Element]] {
+    try self.reduce(into: [T: [Element]]()) { r, e in
       r[try f(e), default: []].append(e)
     }
   }
 
   @inlinable
-  func groupByIndexed<T: Hashable>(_ f: (Int, Element) throws -> T) rethrows -> [T: [Element]] { 
-    try self.enumerated().reduce(into: [T:[Element]]()) { r, e in
+  func groupByIndexed<T: Hashable>(_ f: (Int, Element) throws -> T) rethrows -> [T: [Element]] {
+    try self.enumerated().reduce(into: [T: [Element]]()) { r, e in
       r[try f(e.offset, e.element), default: []].append(e.element)
     }
   }
@@ -61,7 +61,7 @@ extension Sequence {
 
   @inlinable
   func frequencies() -> [Element: Int] where Element: Hashable {
-    self.reduce(into: [Element:Int]()) { r, e in
+    self.reduce(into: [Element: Int]()) { r, e in
       r[e, default: 0] += 1
     }
   }
@@ -69,23 +69,23 @@ extension Sequence {
   @inlinable
   func dropNth(_ i: Int) -> [Element] {
     self
-    .enumerated()
-    .compactMap { offset, x in
-      offset == i ? nil : x
-    }
+      .enumerated()
+      .compactMap { offset, x in
+        offset == i ? nil : x
+      }
   }
 
 }
 
 @inlinable
-func complement<each T>(_ f: @escaping (repeat each T)->Bool) -> (repeat each T) -> Bool {
+func complement<each T>(_ f: @escaping (repeat each T) -> Bool) -> (repeat each T) -> Bool {
   { (args: repeat each T) in
     !f(repeat each args)
   }
 }
 
 @inlinable
-func memoize<each T: Hashable, U>(_ f: @escaping (repeat each T)->U) -> (repeat each T) -> U {
+func memoize<each T: Hashable, U>(_ f: @escaping (repeat each T) -> U) -> (repeat each T) -> U {
   var cache: [Int: U] = [:]
   return { (args: repeat each T) in
     var h = Hasher()
@@ -118,9 +118,9 @@ func iterate<T>(_ initial: T, _ f: (T) -> T?) -> [T] {
 func iterate<T>(_ initial: T, times t: Int, _ f: (T) -> T) -> [T] {
   var result = [T]()
 
-  result.reserveCapacity(t+1)
+  result.reserveCapacity(t + 1)
   result.append(initial)
-  return (1..<t).reduce(into: result) { $0.append(f($0[$1-1])) }
+  return (1..<t).reduce(into: result) { $0.append(f($0[$1 - 1])) }
 }
 
 func gcd(_ m: Int, _ n: Int) -> Int {
@@ -150,7 +150,7 @@ extension Collection {
   var second: Element? {
     dropFirst().first
   }
-  
+
 }
 
 extension Array {
@@ -201,7 +201,6 @@ extension String {
     return self.lines.reduce(into: []) { $0.append($1.map { Int($0.asciiValue! - zero) }) }
   }
 
-
   @inlinable
   func splitInts(separator: Character) -> [Int] {
     split(separator: separator).map(String.init).map { Int($0)! }
@@ -230,28 +229,32 @@ extension Coordinate {
     product(0..<w, 0..<h).map { x, y in Coordinate.init(x: self.x + x, y: self.y + y) }
   }
 
-  public static func +(a: Coordinate, b: Coordinate) -> Coordinate {
+  public static func + (a: Coordinate, b: Coordinate) -> Coordinate {
     .init(x: a.x + b.x, y: a.y + b.y)
   }
 
-  public static func -(a: Coordinate, b: Coordinate) -> Coordinate {
+  public static func - (a: Coordinate, b: Coordinate) -> Coordinate {
     .init(x: a.x - b.x, y: a.y - b.y)
   }
 
-  public static func *(a: Coordinate, b: Int) -> Coordinate {
+  public static func * (a: Coordinate, b: Int) -> Coordinate {
     .init(x: a.x * b, y: a.y * b)
   }
 
   public var surrounding: [Coordinate] {
-    [[-1,-1], [0,-1], [1,-1],
-     [-1,0],          [1, 0],
-     [-1, 1], [0, 1], [1, 1]].map { self + $0 }
+    [
+      [-1, -1], [0, -1], [1, -1],
+      [-1, 0], [1, 0],
+      [-1, 1], [0, 1], [1, 1],
+    ].map { self + $0 }
   }
 
   public var udlr: [Coordinate] {
-    [        [0,-1],
-     [-1,0],        [1, 0],
-             [0, 1]].map { self + $0 }
+    [
+      [0, -1],
+      [-1, 0], [1, 0],
+      [0, 1],
+    ].map { self + $0 }
   }
 
   @inlinable
@@ -263,7 +266,7 @@ extension Coordinate {
 
   public func distanceSquared(to: Coordinate) -> Int {
     let d = to - self
-    return d.x*d.x+d.y*d.y
+    return d.x * d.x + d.y * d.y
   }
 
   public static let origin: Coordinate = .init(x: 0, y: 0)
@@ -294,12 +297,16 @@ extension Collection where Element: Collection {
 
   @inlinable
   public func contains(coord: Coordinate) -> Bool {
-    guard let ridx = index(startIndex, offsetBy: coord.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+    guard let ridx = index(startIndex, offsetBy: coord.y, limitedBy: endIndex), ridx < endIndex,
+      ridx >= startIndex
+    else {
       return false
     }
-    
+
     let row = self[ridx]
-    guard let cidx = row.index(row.startIndex, offsetBy: coord.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+    guard let cidx = row.index(row.startIndex, offsetBy: coord.x, limitedBy: row.endIndex),
+      cidx < row.endIndex, cidx >= row.startIndex
+    else {
       return false
     }
     return true
@@ -320,24 +327,32 @@ extension Collection where Element: Collection {
   }
 
   subscript(_ p: Coordinate) -> Element.Element? {
-    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex,
+      ridx >= startIndex
+    else {
       return nil
     }
-    
+
     let row = self[ridx]
-    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex),
+      cidx < row.endIndex, cidx >= row.startIndex
+    else {
       return nil
     }
     return row[cidx]
   }
 
   subscript(_ p: Coordinate, default d: Element.Element) -> Element.Element {
-    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex,
+      ridx >= startIndex
+    else {
       return d
     }
-    
+
     let row = self[ridx]
-    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex),
+      cidx < row.endIndex, cidx >= row.startIndex
+    else {
       return d
     }
     return row[cidx]
@@ -400,7 +415,7 @@ struct Box {
     lowerRight.x - upperLeft.x + 1
   }
   var height: Int {
-   lowerRight.y - upperLeft.y + 1
+    lowerRight.y - upperLeft.y + 1
   }
 
   var coords: [Coordinate] {
@@ -411,7 +426,7 @@ struct Box {
     func h(_ v: Int, _ b: Int) -> Int {
       //v < 0 ? b+v : v > b ? v % b : v
       if v < 0 {
-        b+v
+        b + v
       } else if v >= b {
         v % b
       } else {
@@ -422,8 +437,7 @@ struct Box {
   }
 
   func contains(_ c: Coordinate) -> Bool {
-    return c.x >= left && c.x <= right &&
-           c.y >= top && c.y <= bottom
+    return c.x >= left && c.x <= right && c.y >= top && c.y <= bottom
   }
 
   func grid<T>(with v: T) -> [[T]] {
@@ -437,25 +451,31 @@ struct Box {
 
     print("Width \(w) height \(h)")
 
-    return [.init(x: 0,   y: 0,   width: w, height: h),
-            .init(x: 0,   y: h+1, width: w, height: h),
-            .init(x: w+1, y: 0,   width: w, height: h),
-            .init(x: w+1, y: h+1, width: w, height: h)]
+    return [
+      .init(x: 0, y: 0, width: w, height: h),
+      .init(x: 0, y: h + 1, width: w, height: h),
+      .init(x: w + 1, y: 0, width: w, height: h),
+      .init(x: w + 1, y: h + 1, width: w, height: h),
+    ]
   }
 
   func widen(scale: Coordinate) -> Box {
-    Box(x: upperLeft.x, y: upperLeft.y, width: width*scale.x, height: height*scale.y)
+    Box(x: upperLeft.x, y: upperLeft.y, width: width * scale.x, height: height * scale.y)
   }
 }
 
 extension Collection where Element: Collection<Character> {
   subscript(_ p: Coordinate, default d: Character = ".") -> Character {
-    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+    guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex,
+      ridx >= startIndex
+    else {
       return d
     }
-    
+
     let row = self[ridx]
-    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+    guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex),
+      cidx < row.endIndex, cidx >= row.startIndex
+    else {
       return d
     }
     return row[cidx]
@@ -469,7 +489,7 @@ extension Collection where Element: Collection<Character> {
       } else {
         return o == self[offset + pt, default: "."]
       }
-    } 
+    }
   }
 
   func cleared(with c: Character = ".") -> [[Character]] {
@@ -484,12 +504,16 @@ extension MutableCollection where Element: MutableCollection {
   @inlinable
   subscript(_ p: Coordinate) -> Element.Element? {
     get {
-      guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex, ridx >= startIndex else {
+      guard let ridx = index(startIndex, offsetBy: p.y, limitedBy: endIndex), ridx < endIndex,
+        ridx >= startIndex
+      else {
         return nil
       }
 
       let row = self[ridx]
-      guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex), cidx < row.endIndex, cidx >= row.startIndex else {
+      guard let cidx = row.index(row.startIndex, offsetBy: p.x, limitedBy: row.endIndex),
+        cidx < row.endIndex, cidx >= row.startIndex
+      else {
         return nil
       }
       return row[cidx]
@@ -515,10 +539,10 @@ public func diff(_ a: Int, _ b: Int) -> Int {
 }
 
 func slurpInput(day: Int) throws -> String {
-    let cwd = FileManager.default.currentDirectoryPath
-    let path = "\(cwd)/input/day\(day).txt"
+  let cwd = FileManager.default.currentDirectoryPath
+  let path = "\(cwd)/input/day\(day).txt"
 
-    return try String(contentsOfFile: path, encoding: .utf8)
+  return try String(contentsOfFile: path, encoding: .utf8)
 }
 
 func spit(_ v: String, to: String) {
@@ -538,7 +562,6 @@ typealias DayFunctionAsync = (String) async -> Int
 func measure<T>(_ f: () throws -> T) rethrows -> (T, ContinuousClock.Duration) {
   let c = ContinuousClock()
 
-
   let before = c.now
   let r = try f()
   return (r, c.now - before)
@@ -546,7 +569,6 @@ func measure<T>(_ f: () throws -> T) rethrows -> (T, ContinuousClock.Duration) {
 
 func measure<T>(_ f: () async throws -> T) async rethrows -> (T, ContinuousClock.Duration) {
   let c = ContinuousClock()
-
 
   let before = c.now
   let r = try await f()

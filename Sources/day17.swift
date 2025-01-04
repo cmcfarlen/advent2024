@@ -6,13 +6,13 @@ enum Day17 {
     let b: Int
     let c: Int
     let ip: Int
-    
+
     subscript(_ idx: Int) -> Int {
       switch idx {
-        case 0: a
-        case 1: b
-        case 2: c
-        default: ip
+      case 0: a
+      case 1: b
+      case 2: c
+      default: ip
       }
     }
   }
@@ -27,59 +27,62 @@ enum Day17 {
     }
     return s[c - 4]
   }
-  
-  static func dv(_ reg: Int, _ cb: Int)-> Int {
+
+  static func dv(_ reg: Int, _ cb: Int) -> Int {
     let num = Double(reg)
     let den = pow(2.0, Double(cb))
-    return Int(trunc(num/den))
+    return Int(trunc(num / den))
   }
 
   static func adv(_ s: State, _ op: Int) -> (State, Int?) {
     let r = dv(s.a, combo(s, op))
-    return (State(a: r, b: s.b, c: s.c, ip: s.ip+2), nil)
+    return (State(a: r, b: s.b, c: s.c, ip: s.ip + 2), nil)
   }
-  
+
   static func bxl(_ s: State, _ op: Int) -> (State, Int?) {
-    (State(a: s.a, b: s.b ^ op, c: s.c, ip: s.ip+2), nil)
+    (State(a: s.a, b: s.b ^ op, c: s.c, ip: s.ip + 2), nil)
   }
 
   static func bst(_ s: State, _ op: Int) -> (State, Int?) {
-    (State(a: s.a, b: combo(s, op) % 8, c: s.c, ip: s.ip+2), nil)
+    (State(a: s.a, b: combo(s, op) % 8, c: s.c, ip: s.ip + 2), nil)
   }
 
   static func jnz(_ s: State, _ op: Int) -> (State, Int?) {
-    s.a == 0 ? (State(a: s.a, b: s.b, c: s.c, ip: s.ip+2), nil) :
-    (State(a: s.a, b: s.b, c: s.c, ip: op), nil)
+    s.a == 0
+      ? (State(a: s.a, b: s.b, c: s.c, ip: s.ip + 2), nil)
+      : (State(a: s.a, b: s.b, c: s.c, ip: op), nil)
   }
 
   static func bxc(_ s: State, _ _: Int) -> (State, Int?) {
-    (State(a: s.a, b: s.b ^ s.c, c: s.c, ip: s.ip+2), nil)
+    (State(a: s.a, b: s.b ^ s.c, c: s.c, ip: s.ip + 2), nil)
   }
 
   static func out(_ s: State, _ op: Int) -> (State, Int?) {
-    (State(a: s.a, b: s.b, c: s.c, ip: s.ip+2), combo(s, op) % 8)
+    (State(a: s.a, b: s.b, c: s.c, ip: s.ip + 2), combo(s, op) % 8)
   }
 
   static func bdv(_ s: State, _ op: Int) -> (State, Int?) {
     let r = dv(s.a, combo(s, op))
-    return (State(a: s.a, b: r, c: s.c, ip: s.ip+2), nil)
+    return (State(a: s.a, b: r, c: s.c, ip: s.ip + 2), nil)
   }
 
   static func cdv(_ s: State, _ op: Int) -> (State, Int?) {
     let r = dv(s.a, combo(s, op))
-    return (State(a: s.a, b: s.b, c: r, ip: s.ip+2), nil)
+    return (State(a: s.a, b: s.b, c: r, ip: s.ip + 2), nil)
   }
 
-  static let names = ["adv", "bxl","bst","jnz","bxc","out","bdv","cdv"]
-  static func opname(_ op: Int)->String {
+  static let names = ["adv", "bxl", "bst", "jnz", "bxc", "out", "bdv", "cdv"]
+  static func opname(_ op: Int) -> String {
     return names[op]
   }
-  
-  static func runProgram(opcodes: [Int:(State, Int)->(State,Int?)], _ s: State, _ ins: [Int], _ out: (Int)->Void) -> State {
+
+  static func runProgram(
+    opcodes: [Int: (State, Int) -> (State, Int?)], _ s: State, _ ins: [Int], _ out: (Int) -> Void
+  ) -> State {
     var s = s
     while s.ip < ins.count {
       let opcode = ins[s.ip]
-      let operand = ins[s.ip+1]
+      let operand = ins[s.ip + 1]
       guard let op = opcodes[opcode] else {
         fatalError("unknown op for \(opcode)")
       }
@@ -96,8 +99,7 @@ enum Day17 {
     return s
   }
 
-
-  static func disassemble(opcodes: [Int:(State, Int)->(State,Int?)], _ ins: [Int]) -> [String] {
+  static func disassemble(opcodes: [Int: (State, Int) -> (State, Int?)], _ ins: [Int]) -> [String] {
     ins.chunks(ofCount: 2).map {
       let ins = Array($0)
       return "\(opname(ins[0])): \(ins[1])"
@@ -109,9 +111,9 @@ enum Day17 {
     let registers = String(parts[0]).lines.map { $0.split(separator: ": ").last! }.map { Int($0)! }
     let program = String(parts[1]).trimmed
       .split(separator: ": ").last!
-      .split(separator:  ",")
+      .split(separator: ",")
       .map { Int($0)! }
-    let opcodes: [Int:(State, Int)->(State,Int?)] = [
+    let opcodes: [Int: (State, Int) -> (State, Int?)] = [
       0: adv,
       1: bxl,
       2: bst,
@@ -119,13 +121,12 @@ enum Day17 {
       4: bxc,
       5: out,
       6: bdv,
-      7: cdv
+      7: cdv,
     ]
-    
 
     print("registers \(registers)")
     print("program \(program)")
-    for l in disassemble(opcodes:opcodes, program) {
+    for l in disassemble(opcodes: opcodes, program) {
       print(l)
     }
 
@@ -144,9 +145,9 @@ enum Day17 {
     let registers = String(parts[0]).lines.map { $0.split(separator: ": ").last! }.map { Int($0)! }
     let program = String(parts[1]).trimmed
       .split(separator: ": ").last!
-      .split(separator:  ",")
+      .split(separator: ",")
       .map { Int($0)! }
-    let opcodes: [Int:(State, Int)->(State,Int?)] = [
+    let opcodes: [Int: (State, Int) -> (State, Int?)] = [
       0: adv,
       1: bxl,
       2: bst,
@@ -154,16 +155,15 @@ enum Day17 {
       4: bxc,
       5: out,
       6: bdv,
-      7: cdv
+      7: cdv,
     ]
-    
 
     print("registers \(registers)")
     print("program \(program)")
-    for l in disassemble(opcodes:opcodes, program) {
+    for l in disassemble(opcodes: opcodes, program) {
       print(l)
     }
-    
+
     func testWith(_ a: Int) -> [Int] {
       var output: [Int] = []
       let initState = State(a: a, b: registers[1], c: registers[2], ip: 0)
@@ -175,26 +175,26 @@ enum Day17 {
 
     // inputs that produce the first output
     let tests = program.count
-    for a in stride(from: 7230976000, to: 100000000000, by: 8) {
+    for a in stride(from: 7_230_976_000, to: 100_000_000_000, by: 8) {
       var input = a
       for t in 1...tests {
-          input = input * 8
-          //print("trying with \(a) -> \(input)")
-          let test = testWith(input)
-          if test.suffix(t) == program.suffix(t) {
-            if t > 2 {
-              print("success \(t) at \(input)!", terminator: " ")
-            }
-            if t == program.count {
-              print("found it!")
-              return input
-            }
-          } else {
-            if (t > 3) {
-              print("fail")
-            }
-            break
+        input = input * 8
+        //print("trying with \(a) -> \(input)")
+        let test = testWith(input)
+        if test.suffix(t) == program.suffix(t) {
+          if t > 2 {
+            print("success \(t) at \(input)!", terminator: " ")
           }
+          if t == program.count {
+            print("found it!")
+            return input
+          }
+        } else {
+          if t > 3 {
+            print("fail")
+          }
+          break
+        }
       }
       /*
       if testWith(a).suffix(1) == program.suffix(1) {
@@ -215,7 +215,7 @@ enum Day17 {
     }
 
     //let testProgram = Array(program.dropLast(2))
-/*
+    /*
     repeat {
       s = s + 1
       a = s
@@ -233,7 +233,7 @@ enum Day17 {
         }
       } while output != expected && output.count < expected.count
     } while s < 1000000
-    
+
 
     return a
     */
