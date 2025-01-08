@@ -84,24 +84,6 @@ func complement<each T>(_ f: @escaping (repeat each T) -> Bool) -> (repeat each 
   }
 }
 
-@inlinable
-func memoize<each T: Hashable, U>(_ f: @escaping (repeat each T) -> U) -> (repeat each T) -> U {
-  var cache: [Int: U] = [:]
-  return { (args: repeat each T) in
-    var h = Hasher()
-    for arg in repeat each args {
-      h.combine(arg)
-    }
-    let key = h.finalize()
-    if let v = cache[key] {
-      return v
-    }
-    let v = f(repeat each args)
-    cache[key] = v
-    return v
-  }
-}
-
 // Too lazy to make this lazy
 @inlinable
 func iterate<T>(_ initial: T, _ f: (T) -> T?) -> [T] {
